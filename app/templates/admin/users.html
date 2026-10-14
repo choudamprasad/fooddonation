@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}User Management – FoodBridge Admin{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  <aside class="dashboard-sidebar">
+    <div class="sidebar-user-block">
+      <div class="user-avatar-circle" style="background: linear-gradient(135deg, #1e293b, #0f172a);">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <div class="user-info-text">
+        <h4>{{ current_user.name }}</h4>
+        <div class="user-role-badge" style="color: var(--accent-orange);">Administrator</div>
+      </div>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li>
+        <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">
+          <i class="fa-solid fa-gauge"></i> Admin Overview
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.verifications') }}" class="sidebar-link">
+          <i class="fa-solid fa-certificate"></i> NGO Verifications
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.users') }}" class="sidebar-link active">
+          <i class="fa-solid fa-users"></i> User Management
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.moderation') }}" class="sidebar-link">
+          <i class="fa-solid fa-boxes-stacked"></i> Content Moderation
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.audit_logs') }}" class="sidebar-link">
+          <i class="fa-solid fa-clock-rotate-left"></i> Audit Logs
+        </a>
+      </li>
+    </ul>
+  </aside>
+
+  <main class="dashboard-main">
+    <div class="dashboard-page-title">
+      <div>
+        <h1>User Account Management</h1>
+        <p>Monitor registered platform members and enforce community conduct rules.</p>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:0.5rem; margin-bottom:1.5rem;">
+      <a href="{{ url_for('admin.users', role='all') }}" class="btn btn-sm {% if role_filter == 'all' %}btn-primary{% else %}btn-secondary{% endif %}">
+        All Accounts ({{ users|length }})
+      </a>
+      <a href="{{ url_for('admin.users', role='donor') }}" class="btn btn-sm {% if role_filter == 'donor' %}btn-primary{% else %}btn-secondary{% endif %}">
+        Donors
+      </a>
+      <a href="{{ url_for('admin.users', role='recipient') }}" class="btn btn-sm {% if role_filter == 'recipient' %}btn-primary{% else %}btn-secondary{% endif %}">
+        Recipients / NGOs
+      </a>
+      <a href="{{ url_for('admin.users', role='admin') }}" class="btn btn-sm {% if role_filter == 'admin' %}btn-primary{% else %}btn-secondary{% endif %}">
+        Administrators
+      </a>
+    </div>
+
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table-modern">
+          <thead>
+            <tr>
+              <th>User Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Associated Organization</th>
+              <th>Phone</th>
+              <th>Joined Date</th>
+              <th>Account Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for u in users %}
+              <tr>
+                <td><strong>{{ u.name }}</strong></td>
+                <td>{{ u.email }}</td>
+                <td>
+                  <span class="badge {% if u.role == 'admin' %}badge-danger{% elif u.role == 'donor' %}badge-success{% else %}badge-info{% endif %}">
+                    {{ u.role }}
+                  </span>
+                </td>
+                <td>
+                  {{ u.organization.organization_name if u.organization else 'Individual' }}
+                </td>
+                <td>{{ u.phone or '&mdash;' }}</td>
+                <td style="font-size:0.8rem; color:var(--text-light);">{{ u.created_at|date_format }}</td>
+                <td>
+                  <span class="badge {{ u.account_status == 'active' and 'badge-success' or 'badge-danger' }}">
+                    {{ u.account_status }}
+                  </span>
+                </td>
+                <td>
+                  {% if u.id != current_user.id %}
+                    <form method="POST" action="{{ url_for('admin.toggle_user_status', user_id=u.id) }}">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-sm {% if u.account_status == 'active' %}btn-secondary{% else %}btn-success{% endif %}" style="font-size:0.78rem;">
+                        {% if u.account_status == 'active' %}
+                          <i class="fa-solid fa-user-slash"></i> Suspend
+                        {% else %}
+                          <i class="fa-solid fa-user-check"></i> Activate
+                        {% endif %}
+                      </button>
+                    </form>
+                  {% else %}
+                    <span style="font-size:0.75rem; color:var(--text-light);">(Current Admin)</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

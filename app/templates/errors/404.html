@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}404 - Page Not Found – FoodBridge Network{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 6rem 1.5rem; text-align: center; max-width: 600px;">
+  <div style="font-size: 5rem; font-weight: 800; color: var(--primary-700); line-height: 1; margin-bottom: 1rem;">
+    404
+  </div>
+  <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.75rem;">
+    Page Not Found
+  </h1>
+  <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 2rem;">
+    The requested resource, donation listing, or page could not be located on the FoodBridge network.
+  </p>
+  <div style="display: flex; gap: 1rem; justify-content: center;">
+    <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+      <i class="fa-solid fa-house"></i> Return Home
+    </a>
+    <a href="{{ url_for('donations.map_view') }}" class="btn btn-secondary">
+      <i class="fa-solid fa-map-location-dot"></i> Browse Food Map
+    </a>
+  </div>
+</div>
+{% endblock %}

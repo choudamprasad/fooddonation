@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}About FoodBridge – Social & Environmental Mission{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 4rem 1.5rem; max-width: 900px;">
+  <div style="text-align: center; margin-bottom: 3.5rem;">
+    <span class="section-tag">Our Core Mission</span>
+    <h1 style="font-size: 2.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.75rem;">
+      Bridging Surplus Food with Communities in Need
+    </h1>
+    <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 650px; margin: 0 auto;">
+      A technological solution solving a pressing logistical challenge: rapid, safe redistribution of wholesome surplus food.
+    </p>
+  </div>
+
+  <div class="card" style="padding: 2.5rem; margin-bottom: 2.5rem;">
+    <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--primary-900); margin-bottom: 1rem;">
+      The Problem We Solve
+    </h2>
+    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.8; margin-bottom: 1.25rem;">
+      Globally, over one-third of all food produced is wasted, generating approximately 8-10% of global greenhouse gas emissions. Simultaneously, millions of people experience acute food insecurity daily. Commercial kitchens, banquet halls, hotels, and college dining facilities often have dozens of wholesome, freshly prepared meals remaining at the end of service. Due to a lack of rapid discovery and transparent coordination mechanisms, this food is frequently discarded.
+    </p>
+    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.8;">
+      FoodBridge establishes an organized, authenticated network connecting local food donors with verified non-profits, homeless shelters, orphanages, and community kitchens. By structuring listings around rigorous food safety windows and automated urgency matching, surplus food is collected and served while perfectly fresh.
+    </p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 3rem;">
+    <div class="card" style="padding: 1.75rem; text-align: center;">
+      <div style="color: var(--primary-700); font-size: 2rem; margin-bottom: 0.75rem;"><i class="fa-solid fa-leaf"></i></div>
+      <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">Environmental Care</h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted);">Diverting food from landfills directly cuts dangerous methane emissions.</p>
+    </div>
+
+    <div class="card" style="padding: 1.75rem; text-align: center;">
+      <div style="color: var(--accent-orange); font-size: 2rem; margin-bottom: 0.75rem;"><i class="fa-solid fa-hand-holding-heart"></i></div>
+      <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">Community Dignity</h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted);">Empowering local grassroots charities with reliable nutrition supplies.</p>
+    </div>
+
+    <div class="card" style="padding: 1.75rem; text-align: center;">
+      <div style="color: #0284c7; font-size: 2rem; margin-bottom: 0.75rem;"><i class="fa-solid fa-shield-halved"></i></div>
+      <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">Safety Protocols</h3>
+      <p style="font-size: 0.85rem; color: var(--text-muted);">Rigid temperature declarations and verified organization vetting.</p>
+    </div>
+  </div>
+
+  <div class="card" style="background-color: var(--primary-50); border: 1px solid var(--primary-100); padding: 2rem; text-align: center;">
+    <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--primary-900); margin-bottom: 0.5rem;">
+      Hackathon Presentation Edition
+    </h3>
+    <p style="font-size: 0.9rem; color: var(--primary-800); max-width: 580px; margin: 0 auto 1.5rem;">
+      Built with a clean Python Flask, SQLite, Leaflet, and Chart.js stack. Fully reproducible locally with seed data and automated tests.
+    </p>
+    <a href="{{ url_for('auth.login') }}" class="btn btn-primary">
+      <i class="fa-solid fa-arrow-right-to-bracket"></i> Launch Demo Accounts
+    </a>
+  </div>
+</div>
+{% endblock %}

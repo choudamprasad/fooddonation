@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ donation.title }} – FoodBridge Donation Details{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 1.5rem;">
+  <!-- Breadcrumb -->
+  <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+    <a href="{{ url_for('main.index') }}" style="color: var(--text-muted);">Home</a> &gt;
+    <a href="{{ url_for('donations.map_view') }}" style="color: var(--text-muted);">Donations</a> &gt;
+    <span style="color: var(--text-main); font-weight: 600;">#{{ donation.id }}</span>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 2.5rem; align-items: start;">
+    <!-- Left Column: Food Details -->
+    <div>
+      <div class="card" style="box-shadow: var(--shadow-md); margin-bottom: 2rem;">
+        {% if donation.image_filename %}
+          <div style="height: 320px; overflow: hidden; background: #000;">
+            <img src="{{ url_for('static', filename='uploads/' + donation.image_filename) }}" alt="{{ donation.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+        {% endif %}
+
+        <div class="card-body">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+            <div>
+              <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;">
+                <span class="badge {{ donation.status|status_badge }}">{{ donation.status }}</span>
+                <span class="badge {{ donation.dietary_type == 'Vegetarian' and 'badge-success' or 'badge-warning' }}">{{ donation.dietary_type }}</span>
+                <span class="badge badge-primary">{{ donation.category }}</span>
+              </div>
+              <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--text-main); line-height: 1.2;">
+                {{ donation.title }}
+              </h1>
+            </div>
+
+            <div style="text-align: right;">
+              <span class="badge urgency-{{ donation.urgency_level }}" data-deadline="{{ donation.pickup_deadline.isoformat() }}" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                <i class="fa-regular fa-clock" style="margin-right: 4px;"></i> {{ donation.pickup_deadline|time_remaining }}
+              </span>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
+                Deadline: {{ donation.pickup_deadline|datetime_format('%b %d, %I:%M %p') }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Highlight metrics row -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; background-color: var(--bg-alt); padding: 1rem 1.25rem; border-radius: var(--radius-md); margin-bottom: 1.75rem;">
+            <div>
+              <span class="stat-item-label">Remaining Qty</span>
+              <div style="font-size: 1.2rem; font-weight: 800; color: var(--primary-800);">
+                {{ donation.remaining_quantity }} {{ donation.quantity_unit }}
+              </div>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Total posted: {{ donation.quantity }}</span>
+            </div>
+            <div>
+              <span class="stat-item-label">Estimated Meals</span>
+              <div style="font-size: 1.2rem; font-weight: 800; color: var(--accent-orange);">
+                ~{{ donation.estimated_meals }}
+              </div>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Nutritious portions</span>
+            </div>
+            <div>
+              <span class="stat-item-label">Estimated CO2 Saved</span>
+              <div style="font-size: 1.2rem; font-weight: 800; color: var(--status-success);">
+                {{ donation.estimated_co2_saved }} kg
+              </div>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Landfill avoided</span>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div style="margin-bottom: 2rem;">
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.6rem;">
+              Food Description & Handling Notes
+            </h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.7; white-space: pre-line;">
+              {{ donation.description }}
+            </p>
+          </div>
+
+          <!-- Technical Food Safety Specs Grid -->
+          <div style="border-top: 1px solid var(--border-light); padding-top: 1.5rem; margin-bottom: 1.5rem;">
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fa-solid fa-temperature-arrow-down" style="color: var(--primary-700);"></i>
+              Food Safety & Hygiene Specifications
+            </h3>
+
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; font-size: 0.88rem;">
+              <div>
+                <strong style="color: var(--text-main);">Preparation Timestamp:</strong><br>
+                <span style="color: var(--text-muted);">{{ donation.prepared_at|datetime_format }}</span>
+              </div>
+              <div>
+                <strong style="color: var(--text-main);">Storage / Holding Temperature:</strong><br>
+                <span style="color: var(--text-muted);"><i class="fa-solid fa-snowflake" style="color: #0284c7; margin-right: 4px;"></i>{{ donation.storage_information }}</span>
+              </div>
+              <div>
+                <strong style="color: var(--text-main);">Packaging Specification:</strong><br>
+                <span style="color: var(--text-muted);"><i class="fa-solid fa-box" style="color: var(--primary-600); margin-right: 4px;"></i>{{ donation.packaging_details }}</span>
+              </div>
+              <div>
+                <strong style="color: var(--text-main);">Allergen Advisory:</strong><br>
+                <span style="color: var(--text-muted);"><i class="fa-solid fa-circle-exclamation" style="color: var(--accent-orange); margin-right: 4px;"></i>{{ donation.allergen_information }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Donor Business Information -->
+          <div style="border-top: 1px solid var(--border-light); padding-top: 1.5rem;">
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.75rem;">
+              Donor Organization
+            </h3>
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+              <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--primary-100); color: var(--primary-800); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem;">
+                <i class="fa-solid fa-store"></i>
+              </div>
+              <div>
+                <strong style="font-size: 1rem; color: var(--text-main);">
+                  {{ donation.donor.organization.organization_name if donation.donor.organization else donation.donor.name }}
+                </strong>
+                <div style="font-size: 0.82rem; color: var(--text-muted);">
+                  <i class="fa-solid fa-location-dot" style="margin-right: 4px;"></i>{{ donation.city }} &bull; Contact Method: {{ donation.contact_preference }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Request Action Box & Map Preview -->
+    <div>
+      <!-- Request Box -->
+      <div class="card" style="box-shadow: var(--shadow-md); margin-bottom: 2rem;">
+        <div class="card-header">
+          <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main);">
+            Request This Surplus Food
+          </h3>
+        </div>
+
+        <div class="card-body">
+          {% if current_user.is_authenticated and current_user.is_recipient %}
+            {% if existing_request %}
+              <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: var(--radius-md); padding: 1.25rem; text-align: center;">
+                <i class="fa-solid fa-circle-check" style="font-size: 2rem; color: var(--status-success); margin-bottom: 0.5rem; display: block;"></i>
+                <h4 style="color: #065f46; font-weight: 700; margin-bottom: 0.35rem;">
+                  Request {{ existing_request.status }}
+                </h4>
+                <p style="font-size: 0.85rem; color: #047857; margin-bottom: 1rem;">
+                  You requested {{ existing_request.requested_quantity }} {{ donation.quantity_unit }} on {{ existing_request.created_at|date_format }}.
+                </p>
+                <a href="{{ url_for('recipient.my_requests') }}" class="btn btn-primary btn-sm" style="width: 100%;">
+                  View in My Requests &rarr;
+                </a>
+              </div>
+            {% elif donation.status in ['Available', 'Request Pending'] and donation.remaining_quantity > 0 and not donation.is_expired %}
+              <form method="POST">
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                  <label class="form-label" for="requested_quantity">Quantity Needed (Max: {{ donation.remaining_quantity }} {{ donation.quantity_unit }}) *</label>
+                  {{ form.requested_quantity(class="form-control" + (" is-invalid" if form.requested_quantity.errors else ""), id="requested_quantity", max=donation.remaining_quantity, value=donation.remaining_quantity) }}
+                  {% for error in form.requested_quantity.errors %}
+                    <span class="form-feedback-error">{{ error }}</span>
+                  {% endfor %}
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="estimated_beneficiaries">Number of People to Feed *</label>
+                  {{ form.estimated_beneficiaries(class="form-control" + (" is-invalid" if form.estimated_beneficiaries.errors else ""), id="estimated_beneficiaries", value=donation.estimated_meals) }}
+                  {% for error in form.estimated_beneficiaries.errors %}
+                    <span class="form-feedback-error">{{ error }}</span>
+                  {% endfor %}
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="message">Distribution & Safe Transport Plan *</label>
+                  {{ form.message(class="form-control" + (" is-invalid" if form.message.errors else ""), id="message", rows="3", placeholder="Describe your delivery vehicle (insulated bags/cooler), destination shelter/community, and planned distribution time...") }}
+                  {% for error in form.message.errors %}
+                    <span class="form-feedback-error">{{ error }}</span>
+                  {% endfor %}
+                </div>
+
+                <div class="form-check" style="margin-bottom: 1.5rem;">
+                  {{ form.safety_commitment(class="form-check-input", id="safety_commitment") }}
+                  <label class="form-check-label" for="safety_commitment" style="font-size: 0.8rem; color: var(--text-muted);">
+                    Our NGO confirms timely pickup, hygienic transport with thermal insulation, and safe immediate redistribution.
+                  </label>
+                </div>
+                {% for error in form.safety_commitment.errors %}
+                  <span class="form-feedback-error" style="margin-bottom: 1rem;">{{ error }}</span>
+                {% endfor %}
+
+                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+                  <i class="fa-solid fa-paper-plane"></i> Submit Collection Request
+                </button>
+              </form>
+            {% else %}
+              <div style="background-color: var(--bg-alt); padding: 1.5rem; text-align: center; border-radius: var(--radius-md); color: var(--text-muted);">
+                <i class="fa-solid fa-lock" style="font-size: 1.5rem; margin-bottom: 0.5rem; display: block;"></i>
+                This donation is currently <strong>{{ donation.status }}</strong> and not accepting new requests.
+              </div>
+            {% endif %}
+
+          {% elif current_user.is_authenticated and current_user.is_donor %}
+            {% if donation.donor_id == current_user.id %}
+              <div style="text-align: center; padding: 1rem 0;">
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+                  You are the donor for this listing.
+                </p>
+                <a href="{{ url_for('donor.manage_donations') }}#donation-{{ donation.id }}" class="btn btn-primary btn-sm" style="width: 100%;">
+                  Manage Requests for This Donation &rarr;
+                </a>
+              </div>
+            {% else %}
+              <div style="text-align: center; padding: 1rem 0; color: var(--text-muted); font-size: 0.88rem;">
+                You are logged in as a Food Donor. Only registered recipient non-profits can request donations.
+              </div>
+            {% endif %}
+
+          {% else %}
+            <!-- Unauthenticated Visitor -->
+            <div style="text-align: center; padding: 1.5rem 0;">
+              <i class="fa-solid fa-building-ngo" style="font-size: 2.2rem; color: var(--primary-700); margin-bottom: 0.75rem; display: block;"></i>
+              <h4 style="font-weight: 700; margin-bottom: 0.5rem; font-size: 1.05rem;">Are you a Recipient NGO?</h4>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+                Log in or register your community organization to request and collect this surplus food.
+              </p>
+              <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-primary btn-sm" style="width: 100%; margin-bottom: 0.5rem;">
+                Sign In to Request
+              </a>
+              <a href="{{ url_for('auth.register') }}" class="btn btn-secondary btn-sm" style="width: 100%;">
+                Register Organization
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Food Safety Checklist Reminder Card -->
+      <div class="card" style="border-left: 4px solid var(--accent-orange);">
+        <div class="card-body" style="padding: 1.25rem;">
+          <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-shield-virus" style="color: var(--accent-orange);"></i> Food Safety Reminder
+          </h4>
+          <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 0.75rem;">
+            FoodBridge facilitates coordination between food businesses and registered charities. All parties must follow safe storage, transport, and handoff protocols.
+          </p>
+          <a href="{{ url_for('main.food_safety') }}" style="font-size: 0.82rem; font-weight: 600; color: var(--primary-700);">
+            Read Food Safety Checklist &rarr;
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

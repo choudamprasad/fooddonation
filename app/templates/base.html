@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}FoodBridge - Smart Food Donation Network{% endblock %}</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Leaflet Maps CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <!-- FoodBridge Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- Hidden Flashed Messages Container for JS Toast Translation -->
+  <div id="flaskFlashedMessages" style="display:none;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flask-flash-message" data-category="{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Main Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <a href="{{ url_for('main.index') }}" class="brand-logo">
+        <div class="brand-icon">
+          <i class="fa-solid fa-hand-holding-heart"></i>
+        </div>
+        <span>Food<span class="brand-highlight">Bridge</span></span>
+      </a>
+
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle Navigation">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <ul class="nav-menu" id="navMenu">
+        <li><a href="{{ url_for('main.index') }}" class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}">Home</a></li>
+        <li><a href="{{ url_for('main.how_it_works') }}" class="nav-link {% if request.endpoint == 'main.how_it_works' %}active{% endif %}">How It Works</a></li>
+        <li><a href="{{ url_for('donations.map_view') }}" class="nav-link {% if request.endpoint == 'donations.map_view' %}active{% endif %}"><i class="fa-solid fa-map-location-dot" style="margin-right:4px;"></i>Map</a></li>
+        
+        {% if current_user.is_authenticated and current_user.is_recipient %}
+          <li><a href="{{ url_for('recipient.available_donations') }}" class="nav-link {% if request.endpoint == 'recipient.available_donations' %}active{% endif %}">Find Food</a></li>
+        {% endif %}
+
+        <li><a href="{{ url_for('main.impact') }}" class="nav-link {% if request.endpoint == 'main.impact' %}active{% endif %}">Impact</a></li>
+        <li><a href="{{ url_for('main.food_safety') }}" class="nav-link {% if request.endpoint == 'main.food_safety' %}active{% endif %}">Safety Guide</a></li>
+        <li><a href="{{ url_for('main.about') }}" class="nav-link {% if request.endpoint == 'main.about' %}active{% endif %}">About</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        {% if current_user.is_authenticated %}
+          <!-- In-App Notification Bell -->
+          <div class="notification-bell-wrapper">
+            <button class="notification-bell-btn" id="notificationBellBtn" title="Notifications">
+              <i class="fa-regular fa-bell"></i>
+              <span class="notification-badge" id="notificationBadge" {% if unread_notifications_count == 0 %}style="display:none;"{% endif %}>
+                {{ unread_notifications_count }}
+              </span>
+            </button>
+            <div class="notification-dropdown" id="notificationDropdown">
+              <div class="notification-header">
+                <h4>Notifications</h4>
+                <button class="btn btn-sm btn-secondary" id="markAllReadBtn" style="padding:0.2rem 0.6rem; font-size:0.75rem;">Mark All Read</button>
+              </div>
+              <ul class="notification-list" id="notificationList">
+                <li style="padding: 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+                  Loading notifications...
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- User Role Dashboard Link -->
+          {% if current_user.is_admin %}
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary btn-sm">
+              <i class="fa-solid fa-shield-halved"></i> Admin Portal
+            </a>
+          {% elif current_user.is_donor %}
+            <a href="{{ url_for('donor.dashboard') }}" class="btn btn-primary btn-sm">
+              <i class="fa-solid fa-gauge"></i> Donor Dashboard
+            </a>
+            <a href="{{ url_for('donor.create_donation') }}" class="btn btn-accent btn-sm">
+              <i class="fa-solid fa-plus"></i> Donate Food
+            </a>
+          {% elif current_user.is_recipient %}
+            <a href="{{ url_for('recipient.dashboard') }}" class="btn btn-primary btn-sm">
+              <i class="fa-solid fa-gauge"></i> NGO Dashboard
+            </a>
+          {% endif %}
+
+          <a href="{{ url_for('auth.profile') }}" class="btn btn-secondary btn-sm" title="Account Settings">
+            <i class="fa-regular fa-user"></i>
+          </a>
+          <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary btn-sm" title="Log Out">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </a>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-sm">Sign In</a>
+          <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary btn-sm">Register</a>
+          <a href="{{ url_for('auth.register') }}" class="btn btn-accent btn-sm">
+            <i class="fa-solid fa-hand-holding-heart"></i> Donate Food
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <!-- Page Content -->
+  <main class="page-wrapper">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="{{ url_for('main.index') }}" class="brand-logo" style="margin-bottom:0.75rem;">
+            <div class="brand-icon">
+              <i class="fa-solid fa-hand-holding-heart"></i>
+            </div>
+            <span>Food<span class="brand-highlight">Bridge</span></span>
+          </a>
+          <p>Connecting surplus food from restaurants, hotels, caterers, and universities with verified community shelters and hunger relief NGOs.</p>
+          <div style="margin-top:1.25rem; display:flex; gap:0.75rem; color:var(--primary-700); font-size:1.1rem;">
+            <a href="#"><i class="fa-brands fa-github"></i></a>
+            <a href="#"><i class="fa-brands fa-linkedin"></i></a>
+            <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>Platform</h4>
+          <ul class="footer-links">
+            <li><a href="{{ url_for('main.how_it_works') }}">How It Works</a></li>
+            <li><a href="{{ url_for('donations.map_view') }}">Live Donations Map</a></li>
+            <li><a href="{{ url_for('main.impact') }}">Impact & Metrics</a></li>
+            <li><a href="{{ url_for('auth.register') }}">Donor Registration</a></li>
+            <li><a href="{{ url_for('auth.register') }}">NGO Sign-up</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Safety & Compliance</h4>
+          <ul class="footer-links">
+            <li><a href="{{ url_for('main.food_safety') }}">Food Safety Checklist</a></li>
+            <li><a href="{{ url_for('main.food_safety') }}#temperatures">Safe Holding Temperatures</a></li>
+            <li><a href="{{ url_for('main.food_safety') }}#guidelines">Hygiene & Packaging</a></li>
+            <li><a href="{{ url_for('main.food_safety') }}#disclaimer">Legal Disclaimer</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Hackathon Demo</h4>
+          <ul class="footer-links">
+            <li><a href="{{ url_for('main.about') }}">About Project</a></li>
+            <li><a href="{{ url_for('auth.login') }}">Demo Accounts</a></li>
+            <li><a href="{{ url_for('main.impact') }}">Calculations Methodology</a></li>
+            <li><span class="badge badge-success">College Hackathon Edition</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2025 FoodBridge Network. Built for social and environmental impact.</div>
+        <div>
+          <span style="color:var(--text-muted); font-size:0.8rem;">
+            <i class="fa-solid fa-shield-halved" style="color:var(--primary-600); margin-right:4px;"></i>
+            Demonstration Platform &bull; Safe Food Handling Protocols Observed
+          </span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

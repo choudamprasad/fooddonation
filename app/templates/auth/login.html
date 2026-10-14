@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In – FoodBridge Network{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 4rem 1.5rem; max-width: 520px;">
+  <div class="card" style="box-shadow: var(--shadow-lg);">
+    <div class="card-header" style="flex-direction: column; align-items: flex-start; gap: 0.25rem;">
+      <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main);">Welcome Back</h2>
+      <p style="font-size: 0.88rem; color: var(--text-muted);">Sign in to manage your surplus food donations or requests.</p>
+    </div>
+
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('auth.login', next=request.args.get('next')) }}">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), id="email", placeholder="you@organization.org") }}
+          {% for error in form.email.errors %}
+            <span class="form-feedback-error">{{ error }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <label class="form-label" for="password" style="margin-bottom: 0;">Password</label>
+          </div>
+          {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), id="password", placeholder="••••••••") }}
+          {% for error in form.password.errors %}
+            <span class="form-feedback-error">{{ error }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="form-check" style="margin-bottom: 1.5rem;">
+          {{ form.remember_me(class="form-check-input", id="remember_me") }}
+          <label class="form-check-label" for="remember_me">Remember my session on this device</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+          <i class="fa-solid fa-right-to-bracket"></i> Sign In to Account
+        </button>
+      </form>
+    </div>
+
+    <!-- Quick Hackathon Demo Credentials Pill Box -->
+    <div style="padding: 1.25rem 1.5rem; background-color: var(--primary-50); border-top: 1px solid var(--border-light);">
+      <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; font-weight: 700; color: var(--primary-800); margin-bottom: 0.75rem;">
+        <i class="fa-solid fa-flask"></i> College Hackathon Demo Credentials
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr; gap: 0.4rem; font-size: 0.8rem; color: var(--primary-900);">
+        <div style="background: white; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center;">
+          <div><strong>Donor:</strong> donor@grandhotel.com / <code>password123</code></div>
+          <button type="button" class="btn btn-sm btn-secondary" onclick="fillCreds('donor@grandhotel.com', 'password123')" style="padding: 2px 8px; font-size: 0.72rem;">Fill</button>
+        </div>
+        <div style="background: white; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center;">
+          <div><strong>Verified NGO:</strong> info@hopeorphanage.org / <code>password123</code></div>
+          <button type="button" class="btn btn-sm btn-secondary" onclick="fillCreds('info@hopeorphanage.org', 'password123')" style="padding: 2px 8px; font-size: 0.72rem;">Fill</button>
+        </div>
+        <div style="background: white; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center;">
+          <div><strong>Administrator:</strong> admin@foodbridge.org / <code>admin123</code></div>
+          <button type="button" class="btn btn-sm btn-secondary" onclick="fillCreds('admin@foodbridge.org', 'admin123')" style="padding: 2px 8px; font-size: 0.72rem;">Fill</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-footer" style="text-align: center; font-size: 0.88rem; color: var(--text-muted);">
+      Don't have an account yet?
+      <a href="{{ url_for('auth.register') }}" style="font-weight: 600; color: var(--primary-700);">Create free account</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  function fillCreds(email, pwd) {
+    document.getElementById('email').value = email;
+    document.getElementById('password').value = pwd;
+  }
+</script>
+{% endblock %}

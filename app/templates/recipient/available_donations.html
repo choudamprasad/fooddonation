@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}Find Available Food – FoodBridge Network{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 1.5rem;">
+  <div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.35rem;">
+      Available Food Donations
+    </h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem;">
+      Browse surplus food from registered restaurants and food businesses. Match scores indicate optimal proximity, remaining safe time, and quantity compatibility.
+    </p>
+  </div>
+
+  <!-- Filter Toolbar -->
+  <form method="GET" action="{{ url_for('recipient.available_donations') }}" class="filter-toolbar">
+    <div class="filter-group">
+      <div class="search-input-wrapper">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" name="search" class="search-input" placeholder="Search by food title, description..." value="{{ search_query }}">
+      </div>
+
+      <select name="category" class="filter-select">
+        <option value="all">All Food Categories</option>
+        {% for cat_val, cat_label in categories %}
+          <option value="{{ cat_val }}" {% if selected_category == cat_val %}selected{% endif %}>{{ cat_label }}</option>
+        {% endfor %}
+      </select>
+
+      <select name="dietary" class="filter-select">
+        <option value="all">All Dietary Types</option>
+        {% for d_val, d_label in dietary_types %}
+          <option value="{{ d_val }}" {% if selected_dietary == d_val %}selected{% endif %}>{{ d_label }}</option>
+        {% endfor %}
+      </select>
+
+      <select name="city" class="filter-select">
+        <option value="">All Cities / Areas</option>
+        {% for city_name in available_cities %}
+          <option value="{{ city_name }}" {% if selected_city == city_name %}selected{% endif %}>{{ city_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted);">Sort by:</label>
+      <select name="sort" class="filter-select">
+        <option value="match" {% if selected_sort == 'match' %}selected{% endif %}>Best Match Score</option>
+        <option value="urgency" {% if selected_sort == 'urgency' %}selected{% endif %}>Pickup Urgency (Soonest)</option>
+        <option value="quantity" {% if selected_sort == 'quantity' %}selected{% endif %}>Largest Quantity</option>
+      </select>
+
+      <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+      <a href="{{ url_for('recipient.available_donations') }}" class="btn btn-secondary btn-sm">Reset</a>
+    </div>
+  </form>
+
+  <!-- Donations Grid -->
+  {% if recommendations %}
+    <div class="donations-grid">
+      {% for match in recommendations %}
+        {% set d = match.donation %}
+        <div class="donation-card">
+          <div class="donation-media">
+            {% if d.image_filename %}
+              <img src="{{ url_for('static', filename='uploads/' + d.image_filename) }}" alt="{{ d.title }}">
+            {% else %}
+              <div class="donation-media-placeholder">
+                <i class="fa-solid fa-plate-wheat"></i>
+                <span>{{ d.category }}</span>
+              </div>
+            {% endif %}
+            <div class="donation-category-pill">{{ d.category }}</div>
+            <div class="donation-urgency-pill">
+              <span class="badge urgency-{{ d.urgency_level }}" data-deadline="{{ d.pickup_deadline.isoformat() }}">
+                {{ d.pickup_deadline|time_remaining }}
+              </span>
+            </div>
+          </div>
+
+          <div class="donation-content">
+            <!-- Smart Match Score Banner -->
+            <div class="donation-match-banner">
+              <div class="match-score-pill">
+                <i class="fa-solid fa-bullseye" style="color:var(--primary-600); margin-right:3px;"></i>
+                {{ match.match_score }}% Match
+              </div>
+              <div class="match-reasons">
+                {{ match.distance_label }}
+              </div>
+            </div>
+
+            <h3 class="donation-title">{{ d.title }}</h3>
+            <div class="donation-donor-meta">
+              <i class="fa-solid fa-store" style="color:var(--primary-600);"></i>
+              <span>{{ d.donor.organization.organization_name if d.donor.organization else d.donor.name }}</span>
+              &bull; <span>{{ d.city }}</span>
+            </div>
+
+            <div class="donation-stats-row">
+              <div class="stat-item">
+                <span class="stat-item-label">Available Qty</span>
+                <span class="stat-item-val">{{ d.remaining_quantity }} {{ d.quantity_unit }}</span>
+              </div>
+              <div class="stat-item" style="margin-left:auto; text-align:right;">
+                <span class="stat-item-label">Feeds ~</span>
+                <span class="stat-item-val">{{ d.estimated_meals }} people</span>
+              </div>
+            </div>
+
+            <ul class="donation-details-list">
+              <li>
+                <i class="fa-solid fa-seedling" style="color:#16a34a;"></i>
+                <span><strong>Dietary:</strong> {{ d.dietary_type }}</span>
+              </li>
+              <li>
+                <i class="fa-solid fa-temperature-arrow-down" style="color:#0284c7;"></i>
+                <span><strong>Storage:</strong> {{ d.storage_information }}</span>
+              </li>
+              <li>
+                <i class="fa-solid fa-shield-halved" style="color:var(--primary-700);"></i>
+                <span><strong>Packaging:</strong> {{ d.packaging_details }}</span>
+              </li>
+            </ul>
+
+            <div style="background-color: var(--primary-50); border-radius: var(--radius-sm); padding: 0.45rem 0.65rem; margin-bottom: 1rem; font-size: 0.75rem; color: var(--primary-900);">
+              <strong>Match explanation:</strong>
+              <div style="margin-top: 2px;">{{ match.explanations|join(' • ') }}</div>
+            </div>
+
+            <div class="donation-footer">
+              <span class="badge {{ d.status|status_badge }}">{{ d.status }}</span>
+              <a href="{{ url_for('donations.detail', donation_id=d.id) }}" class="btn btn-primary btn-sm">
+                View & Request &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div style="background-color: #ffffff; border-radius: var(--radius-lg); padding: 4rem 2rem; text-align: center; border: 1px solid var(--border-light);">
+      <i class="fa-solid fa-filter-circle-xmark" style="font-size: 3rem; color: var(--text-light); margin-bottom: 1rem;"></i>
+      <h3 style="font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">No Donations Found</h3>
+      <p style="color: var(--text-muted); max-width: 480px; margin: 0 auto 1.5rem;">
+        No food listings currently match your filter criteria. Try adjusting the food category, city, or dietary filters.
+      </p>
+      <a href="{{ url_for('recipient.available_donations') }}" class="btn btn-secondary">
+        Clear All Filters
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}Surplus Food Map – FoodBridge Network{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2.5rem 1.5rem;">
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+    <div>
+      <h1 style="font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.35rem;">
+        <i class="fa-solid fa-map-location-dot" style="color:var(--primary-700); margin-right:6px;"></i>
+        Live Surplus Food Map
+      </h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">
+        Discover available surplus food donations in your vicinity. Click any pin to inspect quantity, holding conditions, and remaining safe pickup window.
+      </p>
+    </div>
+
+    <!-- Map Filter Dropdowns -->
+    <div style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:center;">
+      <select id="mapCityFilter" class="filter-select">
+        <option value="">All Cities / Regions</option>
+        {% for city_name in available_cities %}
+          <option value="{{ city_name }}" {% if selected_city == city_name %}selected{% endif %}>{{ city_name }}</option>
+        {% endfor %}
+      </select>
+
+      <select id="mapCategoryFilter" class="filter-select">
+        <option value="all">All Categories</option>
+        {% for cat_val, cat_label in categories %}
+          <option value="{{ cat_val }}" {% if selected_category == cat_val %}selected{% endif %}>{{ cat_label }}</option>
+        {% endfor %}
+      </select>
+
+      <button type="button" class="btn btn-secondary btn-sm" onclick="loadDonationMarkers()">
+        <i class="fa-solid fa-arrows-rotate"></i> Refresh Map
+      </button>
+    </div>
+  </div>
+
+  <!-- Map Container -->
+  <div style="position:relative; margin-bottom:2.5rem;">
+    <div id="map"></div>
+    <div style="position:absolute; bottom:16px; left:16px; z-index:1000; background:rgba(255,255,255,0.92); backdrop-filter:blur(4px); padding:0.6rem 0.9rem; border-radius:var(--radius-md); box-shadow:var(--shadow-md); font-size:0.78rem; border:1px solid var(--border-light); display:flex; gap:1rem; align-items:center;">
+      <div style="display:flex; align-items:center; gap:4px;">
+        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:#2d6a4f;"></span> Normal
+      </div>
+      <div style="display:flex; align-items:center; gap:4px;">
+        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:#ea580c;"></span> High Urgency (&lt;6h)
+      </div>
+      <div style="display:flex; align-items:center; gap:4px;">
+        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:#dc2626;"></span> Critical (&lt;2h)
+      </div>
+    </div>
+  </div>
+
+  <!-- Coordinated List View (Accessible alternative to map) -->
+  <div style="margin-top: 3rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+      <h2 style="font-size:1.4rem; font-weight:800; color:var(--text-main);">
+        Active Donation Listings ({{ donations|length }})
+      </h2>
+      <span style="font-size:0.85rem; color:var(--text-muted);">
+        List view alternative for screen readers and low-bandwidth connections
+      </span>
+    </div>
+
+    {% if donations %}
+      <div class="donations-grid">
+        {% for d in donations %}
+          <div class="donation-card">
+            <div class="donation-media">
+              {% if d.image_filename %}
+                <img src="{{ url_for('static', filename='uploads/' + d.image_filename) }}" alt="{{ d.title }}">
+              {% else %}
+                <div class="donation-media-placeholder">
+                  <i class="fa-solid fa-plate-wheat"></i>
+                  <span>{{ d.category }}</span>
+                </div>
+              {% endif %}
+              <div class="donation-category-pill">{{ d.category }}</div>
+              <div class="donation-urgency-pill">
+                <span class="badge urgency-{{ d.urgency_level }}" data-deadline="{{ d.pickup_deadline.isoformat() }}">
+                  {{ d.pickup_deadline|time_remaining }}
+                </span>
+              </div>
+            </div>
+
+            <div class="donation-content">
+              <h3 class="donation-title">{{ d.title }}</h3>
+              <div class="donation-donor-meta">
+                <i class="fa-solid fa-store" style="color:var(--primary-600);"></i>
+                <span>{{ d.donor.organization.organization_name if d.donor.organization else d.donor.name }}</span>
+                &bull; <span>{{ d.city }}</span>
+              </div>
+
+              <div class="donation-stats-row">
+                <div class="stat-item">
+                  <span class="stat-item-label">Available</span>
+                  <span class="stat-item-val">{{ d.remaining_quantity }} {{ d.quantity_unit }}</span>
+                </div>
+                <div class="stat-item" style="margin-left:auto; text-align:right;">
+                  <span class="stat-item-label">Feeds ~</span>
+                  <span class="stat-item-val">{{ d.estimated_meals }} people</span>
+                </div>
+              </div>
+
+              <ul class="donation-details-list">
+                <li>
+                  <i class="fa-solid fa-temperature-arrow-down" style="color:#0284c7;"></i>
+                  <span><strong>Storage:</strong> {{ d.storage_information }}</span>
+                </li>
+                <li>
+                  <i class="fa-solid fa-location-dot" style="color:var(--accent-orange);"></i>
+                  <span><strong>Address:</strong> {{ d.address }}, {{ d.city }}</span>
+                </li>
+              </ul>
+
+              <div class="donation-footer">
+                <span class="badge {{ d.dietary_type == 'Vegetarian' and 'badge-success' or 'badge-warning' }}">{{ d.dietary_type }}</span>
+                <a href="{{ url_for('donations.detail', donation_id=d.id) }}" class="btn btn-primary btn-sm">
+                  View & Request &rarr;
+                </a>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="background-color:#ffffff; border-radius:var(--radius-lg); padding:3rem; text-align:center; border:1px solid var(--border-light);">
+        <p style="color:var(--text-muted);">No active surplus donations found for the selected area.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+
+{% block title %}Administrator Dashboard – FoodBridge{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  <!-- Sidebar -->
+  <aside class="dashboard-sidebar">
+    <div class="sidebar-user-block">
+      <div class="user-avatar-circle" style="background: linear-gradient(135deg, #1e293b, #0f172a);">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <div class="user-info-text">
+        <h4>{{ current_user.name }}</h4>
+        <div class="user-role-badge" style="color: var(--accent-orange);">Administrator</div>
+      </div>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li>
+        <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link active">
+          <i class="fa-solid fa-gauge"></i> Admin Overview
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.verifications') }}" class="sidebar-link">
+          <i class="fa-solid fa-certificate"></i> NGO Verifications
+          {% if pending_verifications > 0 %}
+            <span class="sidebar-counter" style="background-color: #fee2e2; color: #dc2626;">{{ pending_verifications }}</span>
+          {% endif %}
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.users') }}" class="sidebar-link">
+          <i class="fa-solid fa-users"></i> User Management
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.moderation') }}" class="sidebar-link">
+          <i class="fa-solid fa-boxes-stacked"></i> Content Moderation
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.audit_logs') }}" class="sidebar-link">
+          <i class="fa-solid fa-clock-rotate-left"></i> Audit Logs
+        </a>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="dashboard-main">
+    <div class="dashboard-page-title">
+      <div>
+        <h1>Platform Administration</h1>
+        <p>Review organization verification requests, monitor listings, manage users, and inspect security audit trails.</p>
+      </div>
+    </div>
+
+    <!-- Admin KPI Cards -->
+    <div class="stats-grid" style="margin-bottom: 2.5rem;">
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-blue">
+          <i class="fa-solid fa-users"></i>
+        </div>
+        <div>
+          <div class="stat-number">{{ total_users }}</div>
+          <div class="stat-label">Registered Accounts</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-orange">
+          <i class="fa-solid fa-certificate"></i>
+        </div>
+        <div>
+          <div class="stat-number">{{ pending_verifications }}</div>
+          <div class="stat-label">Pending Verifications</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-green">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div>
+          <div class="stat-number">{{ completed_donations_count }}</div>
+          <div class="stat-label">Completed Donations</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-yellow">
+          <i class="fa-solid fa-utensils"></i>
+        </div>
+        <div>
+          <div class="stat-number">{{ total_meals_rescued }}</div>
+          <div class="stat-label">Total Meals Rescued</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending Verifications Section -->
+    <div class="card" style="margin-bottom: 2.5rem;">
+      <div class="card-header">
+        <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fa-solid fa-clock" style="color: var(--accent-orange);"></i>
+          Pending NGO Verification Applications ({{ pending_orgs|length }})
+        </h3>
+        <a href="{{ url_for('admin.verifications') }}" class="btn btn-secondary btn-sm">
+          All Verifications &rarr;
+        </a>
+      </div>
+
+      {% if pending_orgs %}
+        <div class="table-responsive">
+          <table class="table-modern">
+            <thead>
+              <tr>
+                <th>Organization Name</th>
+                <th>Type</th>
+                <th>Reg / Tax ID</th>
+                <th>City / Address</th>
+                <th>Daily Capacity</th>
+                <th>Submitted</th>
+                <th>Decision</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for org in pending_orgs %}
+                <tr>
+                  <td>
+                    <strong>{{ org.organization_name }}</strong><br>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">User: {{ org.user.name }} ({{ org.user.email }})</span>
+                  </td>
+                  <td><span class="badge badge-secondary">{{ org.organization_type }}</span></td>
+                  <td><code>{{ org.registration_number or 'Not provided' }}</code></td>
+                  <td>{{ org.city }}</td>
+                  <td>~{{ org.capacity_servings }} people/day</td>
+                  <td style="font-size:0.8rem; color:var(--text-light);">{{ org.submitted_at|date_format }}</td>
+                  <td>
+                    <div style="display:flex; gap:0.4rem;">
+                      <form method="POST" action="{{ url_for('admin.process_verification', org_id=org.id, action='approve') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-success btn-sm" title="Approve Verification">
+                          <i class="fa-solid fa-check"></i>
+                        </button>
+                      </form>
+                      <form method="POST" action="{{ url_for('admin.process_verification', org_id=org.id, action='reject') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-danger btn-sm" title="Reject Application">
+                          <i class="fa-solid fa-xmark"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div style="padding: 2.5rem; text-align: center; color: var(--text-muted);">
+          <i class="fa-solid fa-circle-check" style="font-size: 2.5rem; color: var(--status-success); margin-bottom: 0.5rem; display: block;"></i>
+          No pending organization applications. All verified!
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Recent Status History Stream -->
+    <div class="card">
+      <div class="card-header">
+        <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main);">
+          <i class="fa-solid fa-clock-rotate-left" style="color: var(--primary-700); margin-right: 6px;"></i>
+          Recent System Lifecycle Transitions (Audit Trail)
+        </h3>
+        <a href="{{ url_for('admin.audit_logs') }}" class="btn btn-secondary btn-sm">Full Log &rarr;</a>
+      </div>
+
+      {% if recent_logs %}
+        <div class="table-responsive">
+          <table class="table-modern">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Donation</th>
+                <th>Transition</th>
+                <th>User / Agent</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for log in recent_logs %}
+                <tr>
+                  <td style="font-size:0.8rem; color:var(--text-light);">
+                    {{ log.changed_at|datetime_format('%b %d, %H:%M:%S') }}
+                  </td>
+                  <td>
+                    <strong>#{{ log.donation_id }}: {{ log.donation.title }}</strong>
+                  </td>
+                  <td>
+                    <span class="badge {{ log.previous_status|status_badge }}">{{ log.previous_status }}</span>
+                    &rarr;
+                    <span class="badge {{ log.new_status|status_badge }}">{{ log.new_status }}</span>
+                  </td>
+                  <td>
+                    {{ log.user.name if log.user else 'System Automation' }}
+                  </td>
+                  <td style="font-size:0.82rem; color:var(--text-muted);">
+                    {{ log.notes or '&mdash;' }}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

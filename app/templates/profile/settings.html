@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Account Settings – FoodBridge Network{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 4rem 1.5rem; max-width: 650px;">
+  <div class="card" style="box-shadow: var(--shadow-md);">
+    <div class="card-header">
+      <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-main);">
+        Profile & Settings
+      </h2>
+      <span class="badge {% if current_user.role == 'admin' %}badge-danger{% elif current_user.role == 'donor' %}badge-success{% else %}badge-info{% endif %}">
+        {{ current_user.role|capitalize }}
+      </span>
+    </div>
+
+    <div class="card-body">
+      <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address (Immutable)</label>
+          <input type="text" class="form-control" value="{{ current_user.email }}" disabled style="background-color: var(--bg-alt);">
+          <span class="form-text-muted">Contact an administrator to change your email address.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="name">Full Name / Representative Name</label>
+          {{ form.name(class="form-control", id="name") }}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="phone">Contact Phone Number</label>
+          {{ form.phone(class="form-control", id="phone", placeholder="+1 (555) 000-0000") }}
+        </div>
+
+        {% if org %}
+          <div style="margin: 1.5rem 0 1rem; border-top: 1px solid var(--border-light); padding-top: 1.25rem;">
+            <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--primary-900); margin-bottom: 0.25rem;">
+              {{ org.organization_name }}
+            </h4>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+              Type: {{ org.organization_type }} &bull; Verification Status:
+              <span class="badge {{ org.verification_status|status_badge }}">{{ org.verification_status }}</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="address">Street Address</label>
+            {{ form.address(class="form-control", id="address") }}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="city">City / District</label>
+            {{ form.city(class="form-control", id="city") }}
+          </div>
+        {% endif %}
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+          <button type="submit" class="btn btn-primary btn-lg">
+            <i class="fa-solid fa-floppy-disk"></i> Save Profile Settings
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

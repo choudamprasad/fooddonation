@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Register Account – FoodBridge Network{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 4rem 1.5rem; max-width: 680px;">
+  <div class="card" style="box-shadow: var(--shadow-lg);">
+    <div class="card-header" style="flex-direction: column; align-items: flex-start; gap: 0.25rem;">
+      <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main);">Join the FoodBridge Network</h2>
+      <p style="font-size: 0.88rem; color: var(--text-muted);">Register as a food donor or a recipient non-profit organization.</p>
+    </div>
+
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('auth.register') }}">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+          <label class="form-label" for="role">I am registering as:</label>
+          {{ form.role(class="form-control", id="roleSelect") }}
+          {% for error in form.role.errors %}
+            <span class="form-feedback-error">{{ error }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="name">Contact Person / Full Name</label>
+            {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), id="name", placeholder="e.g. Sarah Jenkins") }}
+            {% for error in form.name.errors %}
+              <span class="form-feedback-error">{{ error }}</span>
+            {% endfor %}
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="phone">Direct Contact Phone</label>
+            {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else ""), id="phone", placeholder="+1 (555) 234-5678") }}
+            {% for error in form.phone.errors %}
+              <span class="form-feedback-error">{{ error }}</span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Official Email Address</label>
+          {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), id="email", placeholder="contact@organization.org") }}
+          {% for error in form.email.errors %}
+            <span class="form-feedback-error">{{ error }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="password">Password (min 6 chars)</label>
+            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), id="password", placeholder="••••••••") }}
+            {% for error in form.password.errors %}
+              <span class="form-feedback-error">{{ error }}</span>
+            {% endfor %}
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="confirm_password">Confirm Password</label>
+            {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else ""), id="confirm_password", placeholder="••••••••") }}
+            {% for error in form.confirm_password.errors %}
+              <span class="form-feedback-error">{{ error }}</span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div style="margin: 1.5rem 0 1rem; border-top: 1px solid var(--border-light); padding-top: 1.25rem;">
+          <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--primary-900); margin-bottom: 0.35rem;" id="orgSectionTitle">
+            Organization Profile
+          </h4>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.25rem;" id="orgSectionSubtitle">
+            Your physical location enables distance-based matching with donors and volunteers.
+          </p>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="organization_name">Organization / Entity Name</label>
+            {{ form.organization_name(class="form-control" + (" is-invalid" if form.organization_name.errors else ""), id="organization_name", placeholder="e.g. City Hope Community Kitchen") }}
+            {% for error in form.organization_name.errors %}
+              <span class="form-feedback-error">{{ error }}</span>
+            {% endfor %}
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="organization_type">Entity Classification</label>
+            {{ form.organization_type(class="form-control", id="organization_type") }}
+            {% for error in form.organization_type.errors %}
+              <span class="form-feedback-error">{{ error }}</span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="address">Street Address</label>
+          {{ form.address(class="form-control" + (" is-invalid" if form.address.errors else ""), id="address", placeholder="e.g. 142 Elm Street, Suite 400") }}
+          {% for error in form.address.errors %}
+            <span class="form-feedback-error">{{ error }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="form-row-3">
+          <div class="form-group">
+            <label class="form-label" for="city">City / District</label>
+            {{ form.city(class="form-control" + (" is-invalid" if form.city.errors else ""), id="city", placeholder="e.g. Downtown") }}
+            {% for error in form.city.errors %}
+              <span class="form-feedback-error">{{ error }}</span>
+            {% endfor %}
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="state">State / Province</label>
+            {{ form.state(class="form-control", id="state", placeholder="e.g. NY") }}
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="postal_code">Postal Code</label>
+            {{ form.postal_code(class="form-control", id="postal_code", placeholder="10001") }}
+          </div>
+        </div>
+
+        <div style="background-color: var(--primary-50); border-radius: var(--radius-md); padding: 0.9rem 1.1rem; margin-bottom: 1.5rem; font-size: 0.82rem; color: var(--primary-900); display: flex; gap: 0.6rem; align-items: flex-start;">
+          <i class="fa-solid fa-circle-check" style="color: var(--primary-600); margin-top: 2px;"></i>
+          <div>
+            <strong>Transparent & Secure:</strong> Recipient NGO organizations will undergo verification before collecting sensitive donations to ensure food reaches genuine beneficiaries.
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+          <i class="fa-solid fa-user-plus"></i> Complete Registration
+        </button>
+      </form>
+    </div>
+
+    <div class="card-footer" style="text-align: center; font-size: 0.88rem; color: var(--text-muted);">
+      Already have a FoodBridge account?
+      <a href="{{ url_for('auth.login') }}" style="font-weight: 600; color: var(--primary-700);">Sign In here</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

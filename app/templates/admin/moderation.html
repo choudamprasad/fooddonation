@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Content Moderation – FoodBridge Admin{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  <aside class="dashboard-sidebar">
+    <div class="sidebar-user-block">
+      <div class="user-avatar-circle" style="background: linear-gradient(135deg, #1e293b, #0f172a);">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <div class="user-info-text">
+        <h4>{{ current_user.name }}</h4>
+        <div class="user-role-badge" style="color: var(--accent-orange);">Administrator</div>
+      </div>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li>
+        <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">
+          <i class="fa-solid fa-gauge"></i> Admin Overview
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.verifications') }}" class="sidebar-link">
+          <i class="fa-solid fa-certificate"></i> NGO Verifications
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.users') }}" class="sidebar-link">
+          <i class="fa-solid fa-users"></i> User Management
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.moderation') }}" class="sidebar-link active">
+          <i class="fa-solid fa-boxes-stacked"></i> Content Moderation
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.audit_logs') }}" class="sidebar-link">
+          <i class="fa-solid fa-clock-rotate-left"></i> Audit Logs
+        </a>
+      </li>
+    </ul>
+  </aside>
+
+  <main class="dashboard-main">
+    <div class="dashboard-page-title">
+      <div>
+        <h1>Donation Content Moderation</h1>
+        <p>Review and moderate active food listings across all donors to uphold hygiene and safety compliance.</p>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:0.5rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+      <a href="{{ url_for('admin.moderation', status='all') }}" class="btn btn-sm {% if status_filter == 'all' %}btn-primary{% else %}btn-secondary{% endif %}">
+        All Listings ({{ donations|length }})
+      </a>
+      <a href="{{ url_for('admin.moderation', status='Available') }}" class="btn btn-sm {% if status_filter == 'Available' %}btn-primary{% else %}btn-secondary{% endif %}">
+        Available
+      </a>
+      <a href="{{ url_for('admin.moderation', status='Request Pending') }}" class="btn btn-sm {% if status_filter == 'Request Pending' %}btn-primary{% else %}btn-secondary{% endif %}">
+        Pending Requests
+      </a>
+      <a href="{{ url_for('admin.moderation', status='Completed') }}" class="btn btn-sm {% if status_filter == 'Completed' %}btn-primary{% else %}btn-secondary{% endif %}">
+        Completed
+      </a>
+      <a href="{{ url_for('admin.moderation', status='Cancelled') }}" class="btn btn-sm {% if status_filter == 'Cancelled' %}btn-primary{% else %}btn-secondary{% endif %}">
+        Cancelled / Removed
+      </a>
+    </div>
+
+    <div class="card">
+      {% if donations %}
+        <div class="table-responsive">
+          <table class="table-modern">
+            <thead>
+              <tr>
+                <th>Listing ID & Title</th>
+                <th>Donor Business</th>
+                <th>Category / Diet</th>
+                <th>Quantity</th>
+                <th>Deadline</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for d in donations %}
+                <tr>
+                  <td>
+                    <strong>#{{ d.id }}: {{ d.title }}</strong><br>
+                    <span style="font-size:0.75rem; color:var(--text-muted);"><i class="fa-solid fa-location-dot" style="margin-right:2px;"></i>{{ d.city }}</span>
+                  </td>
+                  <td>
+                    {{ d.donor.organization.organization_name if d.donor.organization else d.donor.name }}<br>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">{{ d.donor.email }}</span>
+                  </td>
+                  <td>{{ d.category }} &bull; {{ d.dietary_type }}</td>
+                  <td><strong>{{ d.remaining_quantity }} / {{ d.quantity }} {{ d.quantity_unit }}</strong></td>
+                  <td>
+                    <span class="badge urgency-{{ d.urgency_level }}" data-deadline="{{ d.pickup_deadline.isoformat() }}">
+                      {{ d.pickup_deadline|time_remaining }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge {{ d.status|status_badge }}">{{ d.status }}</span>
+                  </td>
+                  <td>
+                    <div style="display:flex; gap:0.4rem;">
+                      <a href="{{ url_for('donations.detail', donation_id=d.id) }}" class="btn btn-sm btn-secondary" target="_blank" title="View Listing">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                      </a>
+                      {% if d.status not in ['Completed', 'Cancelled'] %}
+                        <form method="POST" action="{{ url_for('admin.remove_donation', donation_id=d.id) }}">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <input type="hidden" name="reason" value="Listing removed by platform administrator.">
+                          <button type="submit" class="btn btn-sm btn-secondary" style="color:var(--status-danger);" title="Remove / Cancel Listing">
+                            <i class="fa-solid fa-trash-can"></i>
+                          </button>
+                        </form>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div style="padding:3rem; text-align:center; color:var(--text-muted);">
+          No donations found under this status filter.
+        </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

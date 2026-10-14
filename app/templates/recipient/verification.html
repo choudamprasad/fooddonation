@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Organization Verification – FoodBridge Network{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 4rem 1.5rem; max-width: 720px;">
+  <div class="card" style="box-shadow: var(--shadow-lg);">
+    <div class="card-header" style="flex-direction: column; align-items: flex-start; gap: 0.35rem;">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fa-solid fa-certificate" style="color: var(--primary-700); font-size: 1.3rem;"></i>
+        <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-main); margin: 0;">
+          Organization Verification Application
+        </h2>
+      </div>
+      <p style="font-size: 0.88rem; color: var(--text-muted);">
+        Submit your registered charity or community entity credentials to unlock priority access to high-volume food donations.
+      </p>
+    </div>
+
+    <div class="card-body">
+      {% if org and org.verification_status == 'verified' %}
+        <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.85rem;">
+          <i class="fa-solid fa-circle-check" style="color: var(--status-success); font-size: 1.5rem;"></i>
+          <div>
+            <strong style="color: #065f46; font-size: 1rem;">Status: Officially Verified Partner</strong>
+            <p style="font-size: 0.82rem; color: #047857; margin-top: 2px;">
+              Your organization was verified on {{ org.verified_at|date_format if org.verified_at else 'Active' }}. You may update your distribution capacity below.
+            </p>
+          </div>
+        </div>
+      {% elif org and org.verification_status == 'pending' %}
+        <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.85rem;">
+          <i class="fa-solid fa-hourglass-half" style="color: var(--status-warning); font-size: 1.5rem;"></i>
+          <div>
+            <strong style="color: #92400e; font-size: 1rem;">Status: Verification In Review</strong>
+            <p style="font-size: 0.82rem; color: #b45309; margin-top: 2px;">
+              Your application was submitted on {{ org.submitted_at|datetime_format }}. An administrator will verify your credentials shortly.
+            </p>
+          </div>
+        </div>
+      {% endif %}
+
+      <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="organization_name">Official Non-Profit / Entity Name *</label>
+            {{ form.organization_name(class="form-control" + (" is-invalid" if form.organization_name.errors else ""), id="organization_name") }}
+            {% for error in form.organization_name.errors %}
+              <span class="form-feedback-error">{{ error }}</span>
+            {% endfor %}
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="organization_type">Organization Classification *</label>
+            {{ form.organization_type(class="form-control", id="organization_type") }}
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="registration_number">Govt Registration / 501(c)(3) / Tax ID *</label>
+            {{ form.registration_number(class="form-control" + (" is-invalid" if form.registration_number.errors else ""), id="registration_number", placeholder="e.g. NGO-REG-849204") }}
+            {% for error in form.registration_number.errors %}
+              <span class="form-feedback-error">{{ error }}</span>
+            {% endfor %}
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="contact_person">Authorized Representative Name *</label>
+            {{ form.contact_person(class="form-control" + (" is-invalid" if form.contact_person.errors else ""), id="contact_person") }}
+            {% for error in form.contact_person.errors %}
+              <span class="form-feedback-error">{{ error }}</span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="address">Registered Address *</label>
+          {{ form.address(class="form-control" + (" is-invalid" if form.address.errors else ""), id="address") }}
+          {% for error in form.address.errors %}
+            <span class="form-feedback-error">{{ error }}</span>
+          {% endfor %}
+        </div>
+
+        <div class="form-row-3">
+          <div class="form-group">
+            <label class="form-label" for="city">City *</label>
+            {{ form.city(class="form-control" + (" is-invalid" if form.city.errors else ""), id="city") }}
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="state">State / Province</label>
+            {{ form.state(class="form-control", id="state") }}
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="postal_code">Postal Code</label>
+            {{ form.postal_code(class="form-control", id="postal_code") }}
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="capacity_servings">Daily Feeding / Distribution Capacity (People) *</label>
+            {{ form.capacity_servings(class="form-control" + (" is-invalid" if form.capacity_servings.errors else ""), id="capacity_servings") }}
+            <span class="form-text-muted">Used by our algorithm to match suitable surplus donation quantities.</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="preferred_categories">Preferred Food Categories</label>
+            {{ form.preferred_categories(class="form-control", id="preferred_categories", placeholder="e.g. Cooked Meals, Raw Produce") }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="verification_document">Official Verification Document / Certificate (PDF/JPG/PNG)</label>
+          {{ form.verification_document(class="form-control", id="verification_document") }}
+          <span class="form-text-muted">Upload an official tax-exempt certificate, NGO incorporation, or shelter license.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="verification_notes">Notes or Public Website / Social Media</label>
+          {{ form.verification_notes(class="form-control", id="verification_notes", rows="3", placeholder="Links to charity website, official registration portal, or references...") }}
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.5rem;">
+          <a href="{{ url_for('recipient.dashboard') }}" class="btn btn-secondary">Cancel</a>
+          <button type="submit" class="btn btn-primary btn-lg">
+            <i class="fa-solid fa-paper-plane"></i> Submit Verification Request
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

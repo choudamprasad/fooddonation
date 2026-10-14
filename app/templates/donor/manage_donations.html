@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Donations – FoodBridge Network{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  <!-- Sidebar -->
+  <aside class="dashboard-sidebar">
+    <div class="sidebar-user-block">
+      <div class="user-avatar-circle">
+        {{ current_user.name[:2]|upper }}
+      </div>
+      <div class="user-info-text">
+        <h4>{{ current_user.name }}</h4>
+        <div class="user-role-badge">Food Donor</div>
+      </div>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li>
+        <a href="{{ url_for('donor.dashboard') }}" class="sidebar-link">
+          <i class="fa-solid fa-gauge"></i> Overview
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('donor.create_donation') }}" class="sidebar-link">
+          <i class="fa-solid fa-plus-circle"></i> Create Donation
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('donor.manage_donations') }}" class="sidebar-link active">
+          <i class="fa-solid fa-boxes-stacked"></i> Manage Donations
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('donations.map_view') }}" class="sidebar-link">
+          <i class="fa-solid fa-map-location-dot"></i> Live Map
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('main.food_safety') }}" class="sidebar-link">
+          <i class="fa-solid fa-shield-virus"></i> Safety Guidelines
+        </a>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="dashboard-main">
+    <div class="dashboard-page-title">
+      <div>
+        <h1>Manage Your Food Donations</h1>
+        <p>Review incoming requests from verified recipient organizations, coordinate collections, and track lifecycle transitions.</p>
+      </div>
+      <div>
+        <a href="{{ url_for('donor.create_donation') }}" class="btn btn-accent btn-sm">
+          <i class="fa-solid fa-plus"></i> New Donation
+        </a>
+      </div>
+    </div>
+
+    <!-- Status Filter Pills -->
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:2rem;">
+      <a href="{{ url_for('donor.manage_donations', status='all') }}" class="btn btn-sm {% if status_filter == 'all' %}btn-primary{% else %}btn-secondary{% endif %}">
+        All ({{ donations|length }})
+      </a>
+      <a href="{{ url_for('donor.manage_donations', status='Available') }}" class="btn btn-sm {% if status_filter == 'Available' %}btn-primary{% else %}btn-secondary{% endif %}">
+        Available
+      </a>
+      <a href="{{ url_for('donor.manage_donations', status='Request Pending') }}" class="btn btn-sm {% if status_filter == 'Request Pending' %}btn-primary{% else %}btn-secondary{% endif %}">
+        Requests Pending
+      </a>
+      <a href="{{ url_for('donor.manage_donations', status='Accepted') }}" class="btn btn-sm {% if status_filter == 'Accepted' %}btn-primary{% else %}btn-secondary{% endif %}">
+        Accepted
+      </a>
+      <a href="{{ url_for('donor.manage_donations', status='Ready for Pickup') }}" class="btn btn-sm {% if status_filter == 'Ready for Pickup' %}btn-primary{% else %}btn-secondary{% endif %}">
+        Ready for Pickup
+      </a>
+      <a href="{{ url_for('donor.manage_donations', status='Completed') }}" class="btn btn-sm {% if status_filter == 'Completed' %}btn-primary{% else %}btn-secondary{% endif %}">
+        Completed
+      </a>
+      <a href="{{ url_for('donor.manage_donations', status='Cancelled') }}" class="btn btn-sm {% if status_filter == 'Cancelled' %}btn-primary{% else %}btn-secondary{% endif %}">
+        Cancelled
+      </a>
+      <a href="{{ url_for('donor.manage_donations', status='Expired') }}" class="btn btn-sm {% if status_filter == 'Expired' %}btn-primary{% else %}btn-secondary{% endif %}">
+        Expired
+      </a>
+    </div>
+
+    <!-- Donations List -->
+    {% if donations %}
+      <div style="display:flex; flex-direction:column; gap:2rem;">
+        {% for d in donations %}
+          <div class="card" id="donation-{{ d.id }}">
+            <div class="card-header" style="flex-wrap:wrap; gap:1rem;">
+              <div style="display:flex; align-items:center; gap:0.85rem;">
+                <span class="badge {{ d.status|status_badge }}" style="font-size:0.85rem; padding:0.35rem 0.8rem;">
+                  {{ d.status }}
+                </span>
+                <h3 style="font-size:1.2rem; font-weight:700; margin:0;">
+                  <a href="{{ url_for('donations.detail', donation_id=d.id) }}" style="color:var(--text-main);">
+                    #{{ d.id }}: {{ d.title }}
+                  </a>
+                </h3>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:0.6rem;">
+                <span class="badge urgency-{{ d.urgency_level }}" data-deadline="{{ d.pickup_deadline.isoformat() }}">
+                  <i class="fa-regular fa-clock" style="margin-right:3px;"></i> {{ d.pickup_deadline|time_remaining }}
+                </span>
+
+                <!-- Lifecycle Action Buttons -->
+                {% if d.status == 'Accepted' %}
+                  <form method="POST" action="{{ url_for('donor.update_status', donation_id=d.id, new_status='Ready for Pickup') }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-primary" title="Notify recipient food is ready">
+                      <i class="fa-solid fa-box-check"></i> Mark Ready for Pickup
+                    </button>
+                  </form>
+                {% elif d.status == 'Ready for Pickup' %}
+                  <form method="POST" action="{{ url_for('donor.update_status', donation_id=d.id, new_status='Collected') }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-success" title="Confirm food has been handed over">
+                      <i class="fa-solid fa-truck-ramp-box"></i> Confirm Handed Over
+                    </button>
+                  </form>
+                {% endif %}
+
+                {% if d.status in ['Available', 'Request Pending', 'Accepted', 'Ready for Pickup'] %}
+                  <form method="POST" action="{{ url_for('donor.cancel_donation_route', donation_id=d.id) }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="button" class="btn btn-sm btn-secondary" style="color:var(--status-danger);"
+                            data-confirm-modal
+                            data-modal-title="Cancel Listing #{{ d.id }}"
+                            data-modal-body="Are you sure you want to cancel this donation? Any open requests will be notified."
+                            data-modal-confirm-text="Cancel Listing"
+                            data-modal-confirm-class="btn-danger">
+                      <i class="fa-solid fa-ban"></i> Cancel
+                    </button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="card-body">
+              <!-- Meta Stats Summary Bar -->
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; background-color:var(--bg-alt); padding:0.9rem 1.25rem; border-radius:var(--radius-md); margin-bottom:1.5rem;">
+                <div>
+                  <div style="font-size:0.72rem; text-transform:uppercase; color:var(--text-light); font-weight:700;">Remaining / Total</div>
+                  <div style="font-size:1.05rem; font-weight:800; color:var(--text-main);">{{ d.remaining_quantity }} / {{ d.quantity }} {{ d.quantity_unit }}</div>
+                </div>
+                <div>
+                  <div style="font-size:0.72rem; text-transform:uppercase; color:var(--text-light); font-weight:700;">Category & Diet</div>
+                  <div style="font-size:0.95rem; font-weight:600; color:var(--text-main);">{{ d.category }} &bull; {{ d.dietary_type }}</div>
+                </div>
+                <div>
+                  <div style="font-size:0.72rem; text-transform:uppercase; color:var(--text-light); font-weight:700;">Holding Temperature</div>
+                  <div style="font-size:0.95rem; font-weight:600; color:var(--text-main);">{{ d.storage_information }}</div>
+                </div>
+                <div>
+                  <div style="font-size:0.72rem; text-transform:uppercase; color:var(--text-light); font-weight:700;">Pickup Location</div>
+                  <div style="font-size:0.95rem; font-weight:600; color:var(--text-main);"><i class="fa-solid fa-location-dot" style="color:var(--accent-orange); margin-right:4px;"></i>{{ d.address }}, {{ d.city }}</div>
+                </div>
+              </div>
+
+              <!-- Requests Section for this Donation -->
+              <h4 style="font-size:1.05rem; font-weight:700; margin-bottom:0.75rem; color:var(--text-main); display:flex; align-items:center; gap:0.5rem;">
+                <i class="fa-solid fa-envelope-open-text" style="color:var(--primary-700);"></i>
+                Collection Requests ({{ d.requests.count() }})
+              </h4>
+
+              {% if d.requests.count() > 0 %}
+                <div class="table-responsive">
+                  <table class="table-modern">
+                    <thead>
+                      <tr>
+                        <th>Recipient NGO</th>
+                        <th>Requested Qty</th>
+                        <th>Beneficiaries</th>
+                        <th>Distribution Plan & Transport</th>
+                        <th>Status</th>
+                        <th>Decision / Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for req in d.requests %}
+                        <tr>
+                          <td>
+                            <strong>{{ req.recipient.organization.organization_name if req.recipient.organization else req.recipient.name }}</strong><br>
+                            <span class="badge {{ req.recipient.organization.verification_status|status_badge if req.recipient.organization else 'badge-secondary' }}">
+                              {{ req.recipient.organization.verification_status if req.recipient.organization else 'Unverified' }}
+                            </span>
+                            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+                              {{ req.recipient.phone }}
+                            </div>
+                          </td>
+                          <td>
+                            <strong style="font-size:1rem; color:var(--primary-800);">
+                              {{ req.requested_quantity }} {{ d.quantity_unit }}
+                            </strong>
+                          </td>
+                          <td>
+                            <span style="font-weight:600;">~{{ req.estimated_beneficiaries }}</span> people
+                          </td>
+                          <td style="max-width:280px; font-size:0.84rem; color:var(--text-muted);">
+                            {{ req.message }}
+                          </td>
+                          <td>
+                            <span class="badge {{ req.status|status_badge }}">
+                              {{ req.status }}
+                            </span>
+                            {% if req.status == 'Rejected' and req.rejection_reason %}
+                              <div style="font-size:0.72rem; color:var(--status-danger); margin-top:3px;">
+                                Reason: {{ req.rejection_reason }}
+                              </div>
+                            {% endif %}
+                          </td>
+                          <td>
+                            {% if req.status == 'Pending' %}
+                              {% if d.remaining_quantity >= req.requested_quantity %}
+                                <div style="display:flex; flex-direction:column; gap:0.35rem;">
+                                  <form method="POST" action="{{ url_for('donor.accept_request', request_id=req.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-success btn-sm" style="width:100%;">
+                                      <i class="fa-solid fa-check"></i> Accept Request
+                                    </button>
+                                  </form>
+                                  <form method="POST" action="{{ url_for('donor.reject_request', request_id=req.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="reason" value="Unable to accommodate request.">
+                                    <button type="submit" class="btn btn-secondary btn-sm" style="width:100%; color:var(--status-danger);">
+                                      <i class="fa-solid fa-xmark"></i> Decline
+                                    </button>
+                                  </form>
+                                </div>
+                              {% else %}
+                                <span style="font-size:0.78rem; color:var(--status-danger);">
+                                  Exceeds available quantity ({{ d.remaining_quantity }} {{ d.quantity_unit }})
+                                </span>
+                              {% endif %}
+                            {% elif req.status == 'Accepted' %}
+                              <span style="font-size:0.82rem; color:var(--status-success); font-weight:600;">
+                                <i class="fa-solid fa-circle-check"></i> Accepted &bull; Awaiting Pickup
+                              </span>
+                            {% else %}
+                              <span style="font-size:0.8rem; color:var(--text-light);">&mdash;</span>
+                            {% endif %}
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              {% else %}
+                <div style="padding:1.5rem; background-color:var(--bg-alt); border-radius:var(--radius-md); text-align:center; color:var(--text-muted); font-size:0.88rem;">
+                  No recipient requests received for this listing yet.
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Audit Trail Summary in Footer -->
+            <div class="card-footer" style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:var(--text-muted);">
+              <div>
+                <i class="fa-solid fa-calendar-check" style="margin-right:4px;"></i>
+                Published {{ d.created_at|datetime_format }} &bull; Updated {{ d.updated_at|datetime_format }}
+              </div>
+              <a href="{{ url_for('donations.detail', donation_id=d.id) }}" style="color:var(--primary-700); font-weight:600;">
+                Public View &rarr;
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="background-color:#ffffff; border-radius:var(--radius-lg); padding:4rem 2rem; text-align:center; border:1px solid var(--border-light);">
+        <i class="fa-solid fa-boxes-packing" style="font-size:3rem; color:var(--text-light); margin-bottom:1rem;"></i>
+        <h3 style="font-weight:700; color:var(--text-main); margin-bottom:0.5rem;">No Listings Found</h3>
+        <p style="color:var(--text-muted); max-width:450px; margin:0 auto 1.5rem;">There are no donations matching the selected status filter.</p>
+        <a href="{{ url_for('donor.create_donation') }}" class="btn btn-accent">
+          <i class="fa-solid fa-plus"></i> List a Food Donation
+        </a>
+      </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}How It Works – FoodBridge Network{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 4rem 1.5rem; max-width: 980px;">
+  <div style="text-align: center; margin-bottom: 4rem;">
+    <span class="section-tag">Redistribution Framework</span>
+    <h1 style="font-size: 2.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.75rem;">
+      How the FoodBridge Network Operates
+    </h1>
+    <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 680px; margin: 0 auto;">
+      A structured, end-to-end workflow designed for rapid collection before food freshness and safety degrade.
+    </p>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 3rem;">
+    <!-- Step 1 -->
+    <div style="display: grid; grid-template-columns: 80px 1fr; gap: 2rem; align-items: flex-start;">
+      <div style="width: 80px; height: 80px; border-radius: var(--radius-xl); background: var(--primary-100); color: var(--primary-800); font-size: 2rem; font-weight: 800; display: flex; align-items: center; justify-content: center;">
+        01
+      </div>
+      <div class="card" style="padding: 2rem;">
+        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--primary-900); margin-bottom: 0.5rem;">
+          Surplus Food Discovery & Donor Listing
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.7; margin-bottom: 1rem;">
+          Commercial restaurants, conference venues, campus dining halls, and banquet caterers frequently prepare large batches of high-quality food that cannot be re-served the next day due to internal menu cycles. The donor creates a listing on FoodBridge specifying exact quantity, dietary classification, storage conditions, preparation time, and a strict safe pickup deadline.
+        </p>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <span class="badge badge-success">Preparation Timestamp</span>
+          <span class="badge badge-primary">Cold / Hot Holding Protocol</span>
+          <span class="badge badge-warning">Safe Pickup Deadline</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div style="display: grid; grid-template-columns: 80px 1fr; gap: 2rem; align-items: flex-start;">
+      <div style="width: 80px; height: 80px; border-radius: var(--radius-xl); background: #ffedd5; color: var(--accent-orange); font-size: 2rem; font-weight: 800; display: flex; align-items: center; justify-content: center;">
+        02
+      </div>
+      <div class="card" style="padding: 2rem;">
+        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--primary-900); margin-bottom: 0.5rem;">
+          Explainable Matching & NGO Request
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.7; margin-bottom: 1rem;">
+          Rather than relying on black-box heuristics, our explainable ranking algorithm scores available donations across 4 transparent pillars:
+          <strong>Proximity (35%)</strong>, <strong>Deadline Urgency (30%)</strong>, <strong>Recipient Distribution Capacity (25%)</strong>, and <strong>Food Category Preferences (10%)</strong>. Nearby verified charities receive instantaneous notifications and submit collection requests specifying their intended distribution.
+        </p>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <span class="badge badge-info">Haversine Distance Match</span>
+          <span class="badge badge-accent">Capacity Fit</span>
+          <span class="badge badge-secondary">Prevent Duplicate Requests</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div style="display: grid; grid-template-columns: 80px 1fr; gap: 2rem; align-items: flex-start;">
+      <div style="width: 80px; height: 80px; border-radius: var(--radius-xl); background: #d1fae5; color: #047857; font-size: 2rem; font-weight: 800; display: flex; align-items: center; justify-content: center;">
+        03
+      </div>
+      <div class="card" style="padding: 2rem;">
+        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--primary-900); margin-bottom: 0.5rem;">
+          Handoff Coordination, Verification & Impact Tracking
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.7; margin-bottom: 1rem;">
+          Once the donor reviews and accepts the request, private street address details and direct contact phone numbers are released to the accepted charity. The donor packs the food, marks it <em>Ready for Pickup</em>, and the NGO confirms physical collection. Once redistributed, the transaction closes, immutable audit history is recorded, and impact statistics update automatically.
+        </p>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <span class="badge badge-completed">Full Status Audit Trail</span>
+          <span class="badge badge-success">Meals & CO2e Tracked</span>
+          <span class="badge badge-primary">Zero Waste Achieved</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align: center; margin-top: 4rem;">
+    <a href="{{ url_for('auth.register') }}" class="btn btn-accent btn-lg">
+      <i class="fa-solid fa-hand-holding-heart"></i> Get Started with FoodBridge
+    </a>
+  </div>
+</div>
+{% endblock %}

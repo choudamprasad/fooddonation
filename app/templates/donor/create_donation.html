@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Food Donation – FoodBridge Network{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  <!-- Sidebar -->
+  <aside class="dashboard-sidebar">
+    <div class="sidebar-user-block">
+      <div class="user-avatar-circle">
+        {{ current_user.name[:2]|upper }}
+      </div>
+      <div class="user-info-text">
+        <h4>{{ current_user.name }}</h4>
+        <div class="user-role-badge">Food Donor</div>
+      </div>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li>
+        <a href="{{ url_for('donor.dashboard') }}" class="sidebar-link">
+          <i class="fa-solid fa-gauge"></i> Overview
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('donor.create_donation') }}" class="sidebar-link active">
+          <i class="fa-solid fa-plus-circle"></i> Create Donation
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('donor.manage_donations') }}" class="sidebar-link">
+          <i class="fa-solid fa-boxes-stacked"></i> Manage Donations
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('donations.map_view') }}" class="sidebar-link">
+          <i class="fa-solid fa-map-location-dot"></i> Live Map
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('main.food_safety') }}" class="sidebar-link">
+          <i class="fa-solid fa-shield-virus"></i> Safety Guidelines
+        </a>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="dashboard-main" style="max-width: 900px;">
+    <div class="dashboard-page-title">
+      <div>
+        <h1>Publish Food Donation</h1>
+        <p>List available surplus food with precise hygiene, storage, and safe pickup deadline specifications.</p>
+      </div>
+    </div>
+
+    <div class="card" style="box-shadow: var(--shadow-md);">
+      <div class="card-body">
+        <form method="POST" enctype="multipart/form-data" id="donationForm">
+          {{ form.hidden_tag() }}
+
+          <!-- Basic Food Information -->
+          <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--primary-900); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-utensils" style="color: var(--primary-600);"></i> 1. Food Particulars
+          </h3>
+
+          <div class="form-group">
+            <label class="form-label" for="title">Donation Title *</label>
+            {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else ""), id="title", placeholder="e.g. 50 Fresh Catered Dinner Bento Boxes (Rice, Veg Curry, Paneer)") }}
+            {% for error in form.title.errors %}
+              <span class="form-feedback-error">{{ error }}</span>
+            {% endfor %}
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="category">Food Category *</label>
+              {{ form.category(class="form-control", id="category") }}
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="dietary_type">Dietary Classification *</label>
+              {{ form.dietary_type(class="form-control", id="dietary_type") }}
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="quantity">Available Quantity *</label>
+              {{ form.quantity(class="form-control" + (" is-invalid" if form.quantity.errors else ""), id="quantity", placeholder="e.g. 25.0") }}
+              {% for error in form.quantity.errors %}
+                <span class="form-feedback-error">{{ error }}</span>
+              {% endfor %}
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="quantity_unit">Unit of Measure *</label>
+              {{ form.quantity_unit(class="form-control", id="quantity_unit") }}
+            </div>
+          </div>
+
+          <!-- Timing & Safe Deadlines -->
+          <div style="margin: 1.75rem 0 1rem; border-top: 1px solid var(--border-light); padding-top: 1.25rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--primary-900); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fa-solid fa-clock" style="color: var(--accent-orange);"></i> 2. Timestamps & Safe Consumption Window
+            </h3>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="prepared_at">Preparation / Cooking Time *</label>
+              {{ form.prepared_at(class="form-control" + (" is-invalid" if form.prepared_at.errors else ""), id="prepared_at", type="datetime-local") }}
+              {% for error in form.prepared_at.errors %}
+                <span class="form-feedback-error">{{ error }}</span>
+              {% endfor %}
+              <span class="form-text-muted">When was this food cooked or prepared?</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="pickup_deadline">Safe Pickup Deadline *</label>
+              {{ form.pickup_deadline(class="form-control" + (" is-invalid" if form.pickup_deadline.errors else ""), id="pickup_deadline", type="datetime-local") }}
+              {% for error in form.pickup_deadline.errors %}
+                <span class="form-feedback-error">{{ error }}</span>
+              {% endfor %}
+              <span class="form-text-muted">Must be in the future. Listing will expire past this time.</span>
+            </div>
+          </div>
+
+          <!-- Storage & Safety Details -->
+          <div style="margin: 1.75rem 0 1rem; border-top: 1px solid var(--border-light); padding-top: 1.25rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--primary-900); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fa-solid fa-shield-halved" style="color: var(--primary-600);"></i> 3. Storage, Allergens & Hygiene Packaging
+            </h3>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="storage_information">Storage & Holding Condition *</label>
+              {{ form.storage_information(class="form-control", id="storage_information") }}
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="allergen_information">Allergen Advisory</label>
+              {{ form.allergen_information(class="form-control", id="allergen_information", placeholder="e.g. Contains Dairy, Peanuts, Gluten (or 'None reported')") }}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="packaging_details">Packaging Specifications *</label>
+            {{ form.packaging_details(class="form-control" + (" is-invalid" if form.packaging_details.errors else ""), id="packaging_details", placeholder="e.g. Clean food-grade aluminium sealed trays; hygienic lids") }}
+            {% for error in form.packaging_details.errors %}
+              <span class="form-feedback-error">{{ error }}</span>
+            {% endfor %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="description">Detailed Description & Handling Instructions *</label>
+            {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), id="description", rows="3", placeholder="Describe the dishes, handling precautions, temperature maintenance, and loading instructions...") }}
+            {% for error in form.description.errors %}
+              <span class="form-feedback-error">{{ error }}</span>
+            {% endfor %}
+          </div>
+
+          <!-- Pickup Location -->
+          <div style="margin: 1.75rem 0 1rem; border-top: 1px solid var(--border-light); padding-top: 1.25rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--primary-900); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fa-solid fa-location-dot" style="color: var(--accent-orange);"></i> 4. Pickup Address & Geolocation
+            </h3>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="address">Pickup Street Address *</label>
+              {{ form.address(class="form-control" + (" is-invalid" if form.address.errors else ""), id="address", placeholder="e.g. 742 Evergreen Terrace, Back Loading Dock") }}
+              {% for error in form.address.errors %}
+                <span class="form-feedback-error">{{ error }}</span>
+              {% endfor %}
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="city">City / Area *</label>
+              {{ form.city(class="form-control" + (" is-invalid" if form.city.errors else ""), id="city", placeholder="e.g. Springfield") }}
+              {% for error in form.city.errors %}
+                <span class="form-feedback-error">{{ error }}</span>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="latitude">Latitude (Optional)</label>
+              {{ form.latitude(class="form-control", id="latitude", placeholder="e.g. 40.7128") }}
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="longitude">Longitude (Optional)</label>
+              {{ form.longitude(class="form-control", id="longitude", placeholder="e.g. -74.0060") }}
+            </div>
+          </div>
+
+          <div style="margin-bottom: 1.25rem;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btnAutoGeo">
+              <i class="fa-solid fa-crosshairs"></i> Use My Current Coordinates
+            </button>
+            <span id="geoStatus" style="font-size: 0.8rem; color: var(--text-muted); margin-left: 0.5rem;"></span>
+          </div>
+
+          <!-- Photo & Contact -->
+          <div style="margin: 1.75rem 0 1rem; border-top: 1px solid var(--border-light); padding-top: 1.25rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--primary-900); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fa-solid fa-camera" style="color: var(--primary-600);"></i> 5. Food Photo & Contact Preference
+            </h3>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="image">Food Photo (Optional, max 5MB)</label>
+              {{ form.image(class="form-control", id="image", accept="image/*") }}
+              <span class="form-text-muted">JPG, PNG, or WEBP photo of the prepared food or packages.</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="contact_preference">Contact Preference *</label>
+              {{ form.contact_preference(class="form-control", id="contact_preference") }}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="donor_phone">Direct Pickup Phone Number</label>
+            {{ form.donor_phone(class="form-control", id="donor_phone", placeholder="+1 (555) 019-2831") }}
+            <span class="form-text-muted">Shared only with recipient NGOs whose requests you accept.</span>
+          </div>
+
+          <!-- Food Safety Pledge -->
+          <div style="background-color: #fff7ed; border: 1px solid #ffedd5; border-radius: var(--radius-md); padding: 1.25rem; margin: 1.5rem 0;">
+            <div class="form-check" style="margin-bottom: 0;">
+              {{ form.safety_pledge(class="form-check-input", id="safety_pledge") }}
+              <label class="form-check-label" for="safety_pledge" style="font-weight: 600; color: #9a3412;">
+                Food Safety Pledge: I certify that this food was prepared and stored following hygienic standards, is completely safe for human consumption, and will remain under specified temperature controls until collected.
+              </label>
+            </div>
+            {% for error in form.safety_pledge.errors %}
+              <span class="form-feedback-error">{{ error }}</span>
+            {% endfor %}
+          </div>
+
+          <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+            <a href="{{ url_for('donor.dashboard') }}" class="btn btn-secondary btn-lg">Cancel</a>
+            <button type="submit" class="btn btn-accent btn-lg">
+              <i class="fa-solid fa-check-circle"></i> Publish Food Donation
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  // Set default preparation time to now and deadline to +4 hours if empty
+  document.addEventListener('DOMContentLoaded', () => {
+    const prepInput = document.getElementById('prepared_at');
+    const deadInput = document.getElementById('pickup_deadline');
+
+    if (prepInput && !prepInput.value) {
+      const now = new Date();
+      prepInput.value = formatDateTimeLocal(now);
+    }
+    if (deadInput && !deadInput.value) {
+      const future = new Date(new Date().getTime() + 4 * 60 * 60 * 1000); // +4 hours
+      deadInput.value = formatDateTimeLocal(future);
+    }
+
+    const geoBtn = document.getElementById('btnAutoGeo');
+    if (geoBtn) {
+      geoBtn.addEventListener('click', () => {
+        const status = document.getElementById('geoStatus');
+        if (navigator.geolocation) {
+          status.innerText = 'Detecting coordinates...';
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              document.getElementById('latitude').value = pos.coords.latitude.toFixed(6);
+              document.getElementById('longitude').value = pos.coords.longitude.toFixed(6);
+              status.innerText = '✓ Coordinates filled!';
+              status.style.color = '#15803d';
+            },
+            (err) => {
+              status.innerText = 'Location access denied or unavailable.';
+              status.style.color = '#b91c1c';
+            }
+          );
+        }
+      });
+    }
+  });
+
+  function formatDateTimeLocal(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+</script>
+{% endblock %}

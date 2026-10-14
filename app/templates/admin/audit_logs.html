@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}System Audit Logs – FoodBridge Admin{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  <aside class="dashboard-sidebar">
+    <div class="sidebar-user-block">
+      <div class="user-avatar-circle" style="background: linear-gradient(135deg, #1e293b, #0f172a);">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <div class="user-info-text">
+        <h4>{{ current_user.name }}</h4>
+        <div class="user-role-badge" style="color: var(--accent-orange);">Administrator</div>
+      </div>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li>
+        <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">
+          <i class="fa-solid fa-gauge"></i> Admin Overview
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.verifications') }}" class="sidebar-link">
+          <i class="fa-solid fa-certificate"></i> NGO Verifications
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.users') }}" class="sidebar-link">
+          <i class="fa-solid fa-users"></i> User Management
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.moderation') }}" class="sidebar-link">
+          <i class="fa-solid fa-boxes-stacked"></i> Content Moderation
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.audit_logs') }}" class="sidebar-link active">
+          <i class="fa-solid fa-clock-rotate-left"></i> Audit Logs
+        </a>
+      </li>
+    </ul>
+  </aside>
+
+  <main class="dashboard-main">
+    <div class="dashboard-page-title">
+      <div>
+        <h1>Security & Status Audit Logs</h1>
+        <p>Immutable history of every state transition, request acceptance, collection event, and cancellation.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table-modern">
+          <thead>
+            <tr>
+              <th>Log ID</th>
+              <th>Timestamp (UTC)</th>
+              <th>Donation</th>
+              <th>State Transition</th>
+              <th>Initiated By</th>
+              <th>Audit Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in logs %}
+              <tr>
+                <td><code>#{{ log.id }}</code></td>
+                <td style="font-size:0.82rem; color:var(--text-light);">
+                  {{ log.changed_at|datetime_format('%Y-%m-%d %H:%M:%S') }}
+                </td>
+                <td>
+                  <strong>#{{ log.donation_id }}: {{ log.donation.title }}</strong>
+                </td>
+                <td>
+                  <span class="badge {{ log.previous_status|status_badge }}">{{ log.previous_status }}</span>
+                  <i class="fa-solid fa-arrow-right" style="font-size:0.7rem; margin:0 4px; color:var(--text-light);"></i>
+                  <span class="badge {{ log.new_status|status_badge }}">{{ log.new_status }}</span>
+                </td>
+                <td>
+                  {% if log.user %}
+                    <strong>{{ log.user.name }}</strong> ({{ log.user.role }})
+                  {% else %}
+                    <span style="color:var(--text-muted); font-style:italic;">Automated Engine</span>
+                  {% endif %}
+                </td>
+                <td style="font-size:0.83rem; color:var(--text-muted); max-width:280px;">
+                  {{ log.notes or '&mdash;' }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

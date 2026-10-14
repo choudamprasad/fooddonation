@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}403 - Access Forbidden – FoodBridge Network{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 6rem 1.5rem; text-align: center; max-width: 600px;">
+  <div style="font-size: 5rem; font-weight: 800; color: var(--accent-orange); line-height: 1; margin-bottom: 1rem;">
+    403
+  </div>
+  <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.75rem;">
+    Access Restricted
+  </h1>
+  <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 2rem;">
+    You do not possess the necessary authorization or role permissions to access this administrative portal or private resource.
+  </p>
+  <div style="display: flex; gap: 1rem; justify-content: center;">
+    <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+      <i class="fa-solid fa-house"></i> Return Home
+    </a>
+    <a href="{{ url_for('auth.login') }}" class="btn btn-secondary">
+      <i class="fa-solid fa-right-to-bracket"></i> Sign In with Authorized Account
+    </a>
+  </div>
+</div>
+{% endblock %}

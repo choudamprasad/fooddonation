@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+
+{% block title %}FoodBridge – Share More Food. Waste Less. Feed More People.{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="container hero-grid">
+    <div class="hero-text">
+      <div class="hero-badge">
+        <i class="fa-solid fa-leaf"></i> Eliminating Food Insecurity & Landfill Waste
+      </div>
+      <h1 class="hero-title">
+        Share More Food.<br>
+        <span>Waste Less.</span><br>
+        Feed More People.
+      </h1>
+      <p class="hero-subtitle">
+        FoodBridge bridges the gap between commercial kitchens, banquet halls, and universities with surplus food and verified local shelters, orphanages, and community kitchens that feed vulnerable families.
+      </p>
+
+      <div class="hero-cta">
+        {% if current_user.is_authenticated %}
+          {% if current_user.is_donor %}
+            <a href="{{ url_for('donor.create_donation') }}" class="btn btn-accent btn-lg">
+              <i class="fa-solid fa-plus-circle"></i> Donate Surplus Food
+            </a>
+            <a href="{{ url_for('donor.dashboard') }}" class="btn btn-secondary btn-lg">
+              <i class="fa-solid fa-gauge"></i> Donor Dashboard
+            </a>
+          {% else %}
+            <a href="{{ url_for('recipient.available_donations') }}" class="btn btn-primary btn-lg">
+              <i class="fa-solid fa-magnifying-glass"></i> Find Food Donations
+            </a>
+            <a href="{{ url_for('recipient.dashboard') }}" class="btn btn-secondary btn-lg">
+              <i class="fa-solid fa-gauge"></i> NGO Dashboard
+            </a>
+          {% endif %}
+        {% else %}
+          <a href="{{ url_for('auth.register') }}" class="btn btn-accent btn-lg">
+            <i class="fa-solid fa-hand-holding-heart"></i> Donate Surplus Food
+          </a>
+          <a href="{{ url_for('auth.register') }}" class="btn btn-secondary btn-lg">
+            <i class="fa-solid fa-building-ngo"></i> Find Food Donations
+          </a>
+        {% endif %}
+      </div>
+
+      <ul class="hero-features-list">
+        <li><i class="fa-solid fa-check-circle"></i> 100% Free Platform</li>
+        <li><i class="fa-solid fa-check-circle"></i> Verified NGOs</li>
+        <li><i class="fa-solid fa-check-circle"></i> Real-time Matching</li>
+      </ul>
+    </div>
+
+    <!-- Visual Card Mockup -->
+    <div class="hero-card-visual">
+      <div class="hero-main-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+          <div style="display:flex; align-items:center; gap:0.6rem;">
+            <div style="width:36px; height:36px; border-radius:50%; background:#d8f3dc; color:#1b4332; display:flex; align-items:center; justify-content:center; font-weight:700;">
+              <i class="fa-solid fa-utensils"></i>
+            </div>
+            <div>
+              <div style="font-weight:700; font-size:0.95rem;">Grand Plaza Hotel Catering</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">Posted 35 mins ago &bull; Central City</div>
+            </div>
+          </div>
+          <span class="badge urgency-high">4.5h left</span>
+        </div>
+
+        <div style="background-color:var(--bg-alt); border-radius:var(--radius-md); padding:1rem; margin-bottom:1.25rem;">
+          <h4 style="font-size:1.05rem; margin-bottom:0.4rem; color:var(--text-main);">Freshly Prepared Gourmet Buffet Meals</h4>
+          <p style="font-size:0.83rem; color:var(--text-muted); margin-bottom:0.75rem;">Steam table holding trays, sealed in food-grade thermal containers. Rice, lentil curry, and roast vegetables.</p>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <span class="badge badge-success">Vegetarian</span>
+            <span class="badge badge-primary">Cooked Meals</span>
+            <span class="badge badge-info">Refrigerated / Warm</span>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; padding-top:0.75rem; border-top:1px solid var(--border-light);">
+          <div>
+            <div style="font-size:0.72rem; text-transform:uppercase; color:var(--text-light); font-weight:700;">Available Volume</div>
+            <div style="font-size:1.15rem; font-weight:800; color:var(--primary-800);">45 kg &bull; ~110 Meals</div>
+          </div>
+          <a href="{{ url_for('donations.map_view') }}" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-location-dot"></i> View on Map
+          </a>
+        </div>
+      </div>
+
+      <!-- Floating Stat Badges -->
+      <div class="hero-floating-stat stat-floating-1">
+        <div style="width:42px; height:42px; border-radius:var(--radius-md); background:#d1fae5; color:#047857; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
+          <i class="fa-solid fa-bowl-food"></i>
+        </div>
+        <div>
+          <div style="font-size:1.1rem; font-weight:800; color:var(--text-main);">{{ total_meals }} Meals</div>
+          <div style="font-size:0.72rem; color:var(--text-muted);">Rescued & Delivered</div>
+        </div>
+      </div>
+
+      <div class="hero-floating-stat stat-floating-2">
+        <div style="width:42px; height:42px; border-radius:var(--radius-md); background:#fee2e2; color:#b91c1c; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
+          <i class="fa-solid fa-clock"></i>
+        </div>
+        <div>
+          <div style="font-size:1.1rem; font-weight:800; color:var(--text-main);">Zero Waste</div>
+          <div style="font-size:0.72rem; color:var(--text-muted);">Timed Safety Alerts</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Live Statistics Counter -->
+<section class="stats-section">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-green">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div>
+          <div class="stat-number">{{ total_completed }}</div>
+          <div class="stat-label">Donations Completed</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-orange">
+          <i class="fa-solid fa-utensils"></i>
+        </div>
+        <div>
+          <div class="stat-number">{{ total_meals }}</div>
+          <div class="stat-label">Estimated Meals Shared</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-yellow">
+          <i class="fa-solid fa-shop"></i>
+        </div>
+        <div>
+          <div class="stat-number">{{ active_donors }}</div>
+          <div class="stat-label">Active Food Donors</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-blue">
+          <i class="fa-solid fa-hand-holding-hand"></i>
+        </div>
+        <div>
+          <div class="stat-number">{{ verified_recipients }}</div>
+          <div class="stat-label">Verified Recipient NGOs</div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:right; margin-top:0.6rem; font-size:0.75rem; color:var(--text-light);">
+      <i class="fa-solid fa-database" style="margin-right:3px;"></i> Calculated dynamically from live database records
+    </div>
+  </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="section-padding" style="background-color:#ffffff;">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">Simple & Reliable Redistribution</span>
+      <h2 class="section-title">How FoodBridge Works</h2>
+      <p class="section-subtitle">We make donating and receiving surplus food effortless, safe, and transparent in three simple steps.</p>
+    </div>
+
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <h3>Donors List Surplus Food</h3>
+        <p>Restaurants, hotels, catered events, and colleges publish available food with exact quantity, dietary tags, hygiene details, and safe pickup deadlines.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <h3>Smart Matching & Request</h3>
+        <p>Our explainable algorithm evaluates proximity, urgency, and recipient capacity to alert nearby verified charities, orphanages, and community kitchens.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <h3>Verified Pickup & Tracking</h3>
+        <p>The donor accepts the request, coordinates safe transport, confirms handoff, and both parties track the completed distribution impact in real-time.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Active Food Listings Preview -->
+<section class="section-padding" style="background-color:var(--bg-body);">
+  <div class="container">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:2.5rem; flex-wrap:wrap; gap:1rem;">
+      <div>
+        <span class="section-tag">Urgent Opportunities</span>
+        <h2 class="section-title" style="margin-bottom:0.25rem;">Active Food Rescue Listings</h2>
+        <p class="section-subtitle">Surplus food awaiting collection right now before safe deadlines expire.</p>
+      </div>
+      <a href="{{ url_for('donations.map_view') }}" class="btn btn-outline-primary">
+        <i class="fa-solid fa-map-location-dot"></i> Explore Full Map View
+      </a>
+    </div>
+
+    {% if available_donations %}
+      <div class="donations-grid">
+        {% for d in available_donations %}
+          <div class="donation-card">
+            <div class="donation-media">
+              {% if d.image_filename %}
+                <img src="{{ url_for('static', filename='uploads/' + d.image_filename) }}" alt="{{ d.title }}">
+              {% else %}
+                <div class="donation-media-placeholder">
+                  <i class="fa-solid fa-plate-wheat"></i>
+                  <span>{{ d.category }}</span>
+                </div>
+              {% endif %}
+              <div class="donation-category-pill">{{ d.category }}</div>
+              <div class="donation-urgency-pill">
+                <span class="badge urgency-{{ d.urgency_level }}" data-deadline="{{ d.pickup_deadline.isoformat() }}">
+                  {{ d.pickup_deadline|time_remaining }}
+                </span>
+              </div>
+            </div>
+
+            <div class="donation-content">
+              <h3 class="donation-title">{{ d.title }}</h3>
+              <div class="donation-donor-meta">
+                <i class="fa-solid fa-store" style="color:var(--primary-600);"></i>
+                <span>{{ d.donor.organization.organization_name if d.donor.organization else d.donor.name }}</span>
+                &bull; <span>{{ d.city }}</span>
+              </div>
+
+              <div class="donation-stats-row">
+                <div class="stat-item">
+                  <span class="stat-item-label">Available Qty</span>
+                  <span class="stat-item-val">{{ d.remaining_quantity }} {{ d.quantity_unit }}</span>
+                </div>
+                <div class="stat-item" style="margin-left:auto; text-align:right;">
+                  <span class="stat-item-label">Estimated Meals</span>
+                  <span class="stat-item-val">~{{ d.estimated_meals }} meals</span>
+                </div>
+              </div>
+
+              <ul class="donation-details-list">
+                <li>
+                  <i class="fa-solid fa-seedling" style="color:#16a34a;"></i>
+                  <span><strong>Dietary:</strong> {{ d.dietary_type }}</span>
+                </li>
+                <li>
+                  <i class="fa-solid fa-temperature-arrow-down" style="color:#0284c7;"></i>
+                  <span><strong>Storage:</strong> {{ d.storage_information }}</span>
+                </li>
+                <li>
+                  <i class="fa-solid fa-location-dot" style="color:var(--accent-orange);"></i>
+                  <span><strong>Location:</strong> {{ d.city }}</span>
+                </li>
+              </ul>
+
+              <div class="donation-footer">
+                <span class="badge {{ d.status|status_badge }}">{{ d.status }}</span>
+                <a href="{{ url_for('donations.detail', donation_id=d.id) }}" class="btn btn-primary btn-sm">
+                  View Details &rarr;
+                </a>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="background-color:#ffffff; border-radius:var(--radius-lg); padding:3.5rem 2rem; text-align:center; border:1px solid var(--border-light);">
+        <i class="fa-solid fa-box-open" style="font-size:3rem; color:var(--text-light); margin-bottom:1rem;"></i>
+        <h3 style="font-size:1.25rem; font-weight:700; margin-bottom:0.5rem;">No Active Public Donations at This Moment</h3>
+        <p style="color:var(--text-muted); max-width:480px; margin:0 auto 1.5rem;">All previous surplus food has been successfully collected and distributed to communities in need!</p>
+        <a href="{{ url_for('donor.create_donation') }}" class="btn btn-accent">
+          <i class="fa-solid fa-plus-circle"></i> List a New Food Donation
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Food Safety & Trust Banner -->
+<section style="background-color:#ffffff; padding:4rem 0; border-top:1px solid var(--border-light);">
+  <div class="container">
+    <div style="background: linear-gradient(135deg, var(--primary-900), var(--primary-800)); color:#ffffff; border-radius:var(--radius-xl); padding:3rem; display:grid; grid-template-columns:1.2fr 0.8fr; gap:2.5rem; align-items:center;">
+      <div>
+        <span class="badge" style="background-color:rgba(255,255,255,0.15); color:#ffffff; margin-bottom:1rem;">Food Safety First</span>
+        <h2 style="font-size:2rem; font-weight:800; line-height:1.2; margin-bottom:1rem;">
+          Rigorous Food Hygiene & Temperature Standards
+        </h2>
+        <p style="color:rgba(255,255,255,0.85); font-size:0.95rem; line-height:1.6; margin-bottom:1.75rem;">
+          We enforce strict preparation timestamps, safe collection countdowns, allergen disclosures, and food-grade packaging pledges before any donation is accepted.
+        </p>
+        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+          <a href="{{ url_for('main.food_safety') }}" class="btn btn-secondary btn-sm" style="background:#ffffff; color:var(--primary-900); font-weight:700;">
+            <i class="fa-solid fa-clipboard-check"></i> Read Full Safety Checklist
+          </a>
+          <a href="{{ url_for('main.impact') }}" class="btn btn-outline-primary btn-sm" style="border-color:#ffffff; color:#ffffff;">
+            <i class="fa-solid fa-chart-line"></i> View Impact Analytics
+          </a>
+        </div>
+      </div>
+
+      <div style="background-color:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:var(--radius-lg); padding:1.75rem;">
+        <h4 style="font-size:1.1rem; font-weight:700; margin-bottom:1rem; color:#ffffff; display:flex; align-items:center; gap:0.5rem;">
+          <i class="fa-solid fa-shield-virus" style="color:var(--accent-amber);"></i> Core Safety Commitments
+        </h4>
+        <ul style="list-style:none; display:flex; flex-direction:column; gap:0.75rem; font-size:0.88rem; color:rgba(255,255,255,0.9);">
+          <li><i class="fa-solid fa-check" style="color:var(--primary-500); margin-right:8px;"></i> Mandatory safe cold (&lt;4°C) or hot (&gt;60°C) holding declarations</li>
+          <li><i class="fa-solid fa-check" style="color:var(--primary-500); margin-right:8px;"></i> Strict 2-4 hour safe pickup window enforcement</li>
+          <li><i class="fa-solid fa-check" style="color:var(--primary-500); margin-right:8px;"></i> Clean, covered food-grade packaging required</li>
+          <li><i class="fa-solid fa-check" style="color:var(--primary-500); margin-right:8px;"></i> Recipient NGO registration and verification vetting</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

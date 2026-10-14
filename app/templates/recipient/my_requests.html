@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block title %}My Requests – FoodBridge Network{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 1.5rem;">
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:2rem; flex-wrap:wrap; gap:1rem;">
+    <div>
+      <h1 style="font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.35rem;">
+        My Food Requests
+      </h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">
+        Track the status of your collection requests, retrieve pickup coordinates upon acceptance, and record completed food redistribution.
+      </p>
+    </div>
+    <a href="{{ url_for('recipient.available_donations') }}" class="btn btn-primary btn-sm">
+      <i class="fa-solid fa-magnifying-glass"></i> Find More Food
+    </a>
+  </div>
+
+  <!-- Status Filters -->
+  <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:2rem;">
+    <a href="{{ url_for('recipient.my_requests', status='all') }}" class="btn btn-sm {% if status_filter == 'all' %}btn-primary{% else %}btn-secondary{% endif %}">
+      All Requests ({{ requests_list|length }})
+    </a>
+    <a href="{{ url_for('recipient.my_requests', status='Pending') }}" class="btn btn-sm {% if status_filter == 'Pending' %}btn-primary{% else %}btn-secondary{% endif %}">
+      Pending Review
+    </a>
+    <a href="{{ url_for('recipient.my_requests', status='Accepted') }}" class="btn btn-sm {% if status_filter == 'Accepted' %}btn-primary{% else %}btn-secondary{% endif %}">
+      Accepted / Awaiting Pickup
+    </a>
+    <a href="{{ url_for('recipient.my_requests', status='Collected') }}" class="btn btn-sm {% if status_filter == 'Collected' %}btn-primary{% else %}btn-secondary{% endif %}">
+      Collected
+    </a>
+    <a href="{{ url_for('recipient.my_requests', status='Completed') }}" class="btn btn-sm {% if status_filter == 'Completed' %}btn-primary{% else %}btn-secondary{% endif %}">
+      Completed
+    </a>
+    <a href="{{ url_for('recipient.my_requests', status='Rejected') }}" class="btn btn-sm {% if status_filter == 'Rejected' %}btn-primary{% else %}btn-secondary{% endif %}">
+      Declined
+    </a>
+  </div>
+
+  {% if requests_list %}
+    <div style="display:flex; flex-direction:column; gap:1.5rem;">
+      {% for req in requests_list %}
+        <div class="card" style="{% if req.status == 'Accepted' %}border-left: 4px solid var(--primary-600);{% endif %}">
+          <div class="card-header" style="flex-wrap:wrap; gap:0.75rem;">
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+              <span class="badge {{ req.status|status_badge }}" style="font-size:0.85rem; padding:0.35rem 0.75rem;">
+                {{ req.status }}
+              </span>
+              <h3 style="font-size:1.15rem; font-weight:700; margin:0;">
+                <a href="{{ url_for('donations.detail', donation_id=req.donation.id) }}" style="color:var(--text-main);">
+                  {{ req.donation.title }}
+                </a>
+              </h3>
+            </div>
+
+            <div style="font-size:0.82rem; color:var(--text-light);">
+              Requested {{ req.created_at|datetime_format }}
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1.25rem; margin-bottom:1.25rem;">
+              <div>
+                <span class="stat-item-label">Requested Amount</span>
+                <div style="font-size:1.1rem; font-weight:800; color:var(--primary-800);">
+                  {{ req.requested_quantity }} {{ req.donation.quantity_unit }}
+                </div>
+                <span style="font-size:0.8rem; color:var(--text-muted);">Feeds ~{{ req.estimated_beneficiaries }} beneficiaries</span>
+              </div>
+
+              <div>
+                <span class="stat-item-label">Donor Business</span>
+                <div style="font-size:0.95rem; font-weight:700; color:var(--text-main);">
+                  {{ req.donation.donor.organization.organization_name if req.donation.donor.organization else req.donation.donor.name }}
+                </div>
+                <span style="font-size:0.8rem; color:var(--text-muted);">{{ req.donation.category }} &bull; {{ req.donation.dietary_type }}</span>
+              </div>
+
+              <div>
+                <span class="stat-item-label">Safe Pickup Deadline</span>
+                <div>
+                  <span class="badge urgency-{{ req.donation.urgency_level }}" data-deadline="{{ req.donation.pickup_deadline.isoformat() }}">
+                    {{ req.donation.pickup_deadline|time_remaining }}
+                  </span>
+                </div>
+                <span style="font-size:0.75rem; color:var(--text-light);">By {{ req.donation.pickup_deadline|datetime_format('%b %d, %H:%M') }}</span>
+              </div>
+            </div>
+
+            <!-- Distribution plan note -->
+            <div style="background-color:var(--bg-alt); border-radius:var(--radius-md); padding:0.85rem 1rem; margin-bottom:1.25rem; font-size:0.85rem; color:var(--text-muted);">
+              <strong>Your Submitted Distribution Plan:</strong> {{ req.message }}
+            </div>
+
+            <!-- Prominent Accepted Pickup Details Box -->
+            {% if req.status in ['Accepted', 'Collected', 'Completed'] %}
+              <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.25rem;">
+                <h4 style="font-size: 0.95rem; font-weight: 700; color: #065f46; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.5rem;">
+                  <i class="fa-solid fa-map-pin"></i> Confirmed Pickup Logistics
+                </h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; font-size: 0.88rem; color: #047857;">
+                  <div>
+                    <strong>Physical Pickup Address:</strong><br>
+                    {{ req.donation.address }}, {{ req.donation.city }}
+                  </div>
+                  <div>
+                    <strong>Donor Contact Phone:</strong><br>
+                    <a href="tel:{{ req.donation.donor_phone or req.donation.donor.phone }}" style="color: #065f46; font-weight: 700;">
+                      <i class="fa-solid fa-phone" style="margin-right: 4px;"></i> {{ req.donation.donor_phone or req.donation.donor.phone or 'Contact in person' }}
+                    </a>
+                  </div>
+                  <div>
+                    <strong>Storage Requirements:</strong><br>
+                    {{ req.donation.storage_information }}
+                  </div>
+                </div>
+
+                {% if req.pickup_notes %}
+                  <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed #a7f3d0; font-size: 0.82rem; color: #065f46;">
+                    <strong>Donor's Specific Pickup Instructions:</strong> {{ req.pickup_notes }}
+                  </div>
+                {% endif %}
+              </div>
+            {% endif %}
+
+            <!-- If Declined, show reason -->
+            {% if req.status == 'Rejected' and req.rejection_reason %}
+              <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: var(--radius-md); padding: 0.85rem 1rem; margin-bottom: 1rem; font-size: 0.85rem; color: #991b1b;">
+                <strong>Declined by Donor:</strong> {{ req.rejection_reason }}
+              </div>
+            {% endif %}
+
+            <!-- Action Buttons for Request -->
+            <div style="display:flex; justify-content:flex-end; gap:0.75rem; align-items:center;">
+              {% if req.status == 'Accepted' %}
+                <form method="POST" action="{{ url_for('recipient.confirm_collection', request_id=req.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-success btn-sm">
+                    <i class="fa-solid fa-truck-ramp-box"></i> Confirm Food Picked Up
+                  </button>
+                </form>
+              {% elif req.status == 'Collected' %}
+                <form method="POST" action="{{ url_for('recipient.confirm_completed', request_id=req.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-circle-check"></i> Mark Distribution Completed
+                  </button>
+                </form>
+              {% elif req.status == 'Pending' %}
+                <form method="POST" action="{{ url_for('recipient.cancel_request', request_id=req.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="button" class="btn btn-secondary btn-sm" style="color:var(--status-danger);"
+                          data-confirm-modal
+                          data-modal-title="Cancel Request"
+                          data-modal-body="Are you sure you want to cancel this pending collection request?"
+                          data-modal-confirm-text="Cancel Request"
+                          data-modal-confirm-class="btn-danger">
+                    <i class="fa-solid fa-ban"></i> Cancel Request
+                  </button>
+                </form>
+              {% endif %}
+
+              <a href="{{ url_for('donations.detail', donation_id=req.donation.id) }}" class="btn btn-secondary btn-sm">
+                View Listing &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div style="background-color: #ffffff; border-radius: var(--radius-lg); padding: 4rem 2rem; text-align: center; border: 1px solid var(--border-light);">
+      <i class="fa-solid fa-clipboard-question" style="font-size: 3rem; color: var(--text-light); margin-bottom: 1rem;"></i>
+      <h3 style="font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">No Requests Found</h3>
+      <p style="color: var(--text-muted); max-width: 480px; margin: 0 auto 1.5rem;">
+        You don't have any requests matching this filter.
+      </p>
+      <a href="{{ url_for('recipient.available_donations') }}" class="btn btn-primary">
+        <i class="fa-solid fa-magnifying-glass"></i> Explore Available Food
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

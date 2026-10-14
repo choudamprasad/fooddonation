@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}NGO Verifications – FoodBridge Admin{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  <aside class="dashboard-sidebar">
+    <div class="sidebar-user-block">
+      <div class="user-avatar-circle" style="background: linear-gradient(135deg, #1e293b, #0f172a);">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <div class="user-info-text">
+        <h4>{{ current_user.name }}</h4>
+        <div class="user-role-badge" style="color: var(--accent-orange);">Administrator</div>
+      </div>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li>
+        <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">
+          <i class="fa-solid fa-gauge"></i> Admin Overview
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.verifications') }}" class="sidebar-link active">
+          <i class="fa-solid fa-certificate"></i> NGO Verifications
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.users') }}" class="sidebar-link">
+          <i class="fa-solid fa-users"></i> User Management
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.moderation') }}" class="sidebar-link">
+          <i class="fa-solid fa-boxes-stacked"></i> Content Moderation
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin.audit_logs') }}" class="sidebar-link">
+          <i class="fa-solid fa-clock-rotate-left"></i> Audit Logs
+        </a>
+      </li>
+    </ul>
+  </aside>
+
+  <main class="dashboard-main">
+    <div class="dashboard-page-title">
+      <div>
+        <h1>Organization Verifications</h1>
+        <p>Review submitted credentials and grant verified partner status to charities and shelters.</p>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:0.5rem; margin-bottom:1.5rem;">
+      <a href="{{ url_for('admin.verifications', status='pending') }}" class="btn btn-sm {% if status_filter == 'pending' %}btn-primary{% else %}btn-secondary{% endif %}">
+        Pending Review
+      </a>
+      <a href="{{ url_for('admin.verifications', status='verified') }}" class="btn btn-sm {% if status_filter == 'verified' %}btn-primary{% else %}btn-secondary{% endif %}">
+        Verified Partners
+      </a>
+      <a href="{{ url_for('admin.verifications', status='rejected') }}" class="btn btn-sm {% if status_filter == 'rejected' %}btn-primary{% else %}btn-secondary{% endif %}">
+        Declined Applications
+      </a>
+      <a href="{{ url_for('admin.verifications', status='all') }}" class="btn btn-sm {% if status_filter == 'all' %}btn-primary{% else %}btn-secondary{% endif %}">
+        All
+      </a>
+    </div>
+
+    <div class="card">
+      {% if orgs %}
+        <div class="table-responsive">
+          <table class="table-modern">
+            <thead>
+              <tr>
+                <th>Organization</th>
+                <th>Classification</th>
+                <th>Govt / Tax ID</th>
+                <th>Contact & Address</th>
+                <th>Capacity</th>
+                <th>Certificate</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for org in orgs %}
+                <tr>
+                  <td>
+                    <strong>{{ org.organization_name }}</strong><br>
+                    <span style="font-size:0.78rem; color:var(--text-muted);">Rep: {{ org.contact_person or org.user.name }} &bull; {{ org.user.email }}</span>
+                  </td>
+                  <td><span class="badge badge-secondary">{{ org.organization_type }}</span></td>
+                  <td><code>{{ org.registration_number or 'N/A' }}</code></td>
+                  <td>
+                    <div style="font-size:0.85rem;">{{ org.address }}, {{ org.city }}</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);"><i class="fa-solid fa-phone" style="margin-right:3px;"></i>{{ org.user.phone }}</div>
+                  </td>
+                  <td><strong>~{{ org.capacity_servings }}</strong> meals/day</td>
+                  <td>
+                    {% if org.verification_document %}
+                      <a href="{{ url_for('static', filename='uploads/' + org.verification_document) }}" target="_blank" class="btn btn-sm btn-secondary" style="font-size:0.75rem;">
+                        <i class="fa-solid fa-file"></i> View Doc
+                      </a>
+                    {% else %}
+                      <span style="font-size:0.75rem; color:var(--text-light);">None uploaded</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <span class="badge {{ org.verification_status|status_badge }}">{{ org.verification_status }}</span>
+                  </td>
+                  <td>
+                    <div style="display:flex; gap:0.4rem;">
+                      {% if org.verification_status != 'verified' %}
+                        <form method="POST" action="{{ url_for('admin.process_verification', org_id=org.id, action='approve') }}">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <button type="submit" class="btn btn-sm btn-success" title="Approve">
+                            <i class="fa-solid fa-check"></i> Approve
+                          </button>
+                        </form>
+                      {% endif %}
+                      {% if org.verification_status != 'rejected' %}
+                        <form method="POST" action="{{ url_for('admin.process_verification', org_id=org.id, action='reject') }}">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <button type="submit" class="btn btn-sm btn-secondary" style="color:var(--status-danger);" title="Reject">
+                            <i class="fa-solid fa-xmark"></i>
+                          </button>
+                        </form>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div style="padding:3rem; text-align:center; color:var(--text-muted);">
+          No organization applications matching this filter.
+        </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}
