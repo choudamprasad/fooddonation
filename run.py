@@ -2,7 +2,17 @@ import os
 from app import create_app, db
 from app.models import User, Organization, Donation, DonationRequest, Notification, DonationStatusHistory
 
-app = create_app(os.environ.get('FLASK_CONFIG', 'development'))
+app = create_app(os.environ.get('FLASK_CONFIG', 'default'))
+
+# Automatically ensure DB tables and demo records exist when started or imported on serverless
+with app.app_context():
+    try:
+        db.create_all()
+        if User.query.count() == 0:
+            import seed
+            seed.run_seed()
+    except Exception as e:
+        app.logger.info(f"Database setup note: {e}")
 
 @app.shell_context_processor
 def make_shell_context():
@@ -31,6 +41,4 @@ def seed_db():
         seed.run_seed()
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(host='0.0.0.0', port=5000, debug=True)

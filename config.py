@@ -2,17 +2,22 @@ import os
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+is_vercel = bool(os.environ.get('VERCEL'))
+if is_vercel:
+    default_db = 'sqlite:////tmp/foodbridge.db'
+    default_upload = '/tmp/uploads'
+else:
+    default_db = f"sqlite:///{os.path.join(basedir, 'instance', 'foodbridge.db')}"
+    default_upload = os.path.join(basedir, 'app', 'static', 'uploads')
+
 class Config:
     """Base application configuration."""
     SECRET_KEY = os.environ.get('SECRET_KEY', 'foodbridge-hackathon-secure-secret-key-2025')
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'DATABASE_URL',
-        f"sqlite:///{os.path.join(basedir, 'instance', 'foodbridge.db')}"
-    )
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', default_db)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Uploads configuration
-    UPLOAD_FOLDER = os.path.join(basedir, 'app', 'static', 'uploads')
+    UPLOAD_FOLDER = default_upload
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5 MB max file size
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
     
@@ -41,8 +46,7 @@ class TestingConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
-    # Enforce secure environment variables in production
-    SECRET_KEY = os.environ.get('SECRET_KEY')
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'foodbridge-prod-secret-2025')
 
 config = {
     'development': DevelopmentConfig,
